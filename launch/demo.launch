@@ -1,0 +1,30 @@
+<launch>
+    <arg name="gui" default="true" />
+    <arg name="robot_description" default="robot_description" />
+    <arg name="rvizconfig" default="$(find yaskawa_cross_modal)/rviz/urdf.rviz"/>
+    <param name="use_gui" value="$(arg gui)"/>
+
+    <!-- <arg name="rvizconfig" default="$(find your_pkg)/rviz/demo.rviz" /> -->
+    <!-- <arg name="rvizconfig" default="demo.rviz" /> <!- change your config file here (see the line above) -->
+
+    <arg name="load_robot_description" default="true" />
+    <!-- load URDF, SRDF and joint_limits configuration -->
+    <include file="$(find yaskawa_moveit_config)/launch/planning_context.launch">
+        <arg name="load_robot_description" value="$(arg load_robot_description)" />
+    </include>
+
+    <node if="$(arg gui)" name="joint_state_publisher" pkg="joint_state_publisher_gui" type="joint_state_publisher_gui">
+        <rosparam param="/source_list">[cmd/joint_position]</rosparam>
+    </node>
+    <node unless="$(arg gui)" name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+        <rosparam param="/source_list">[cmd/joint_position]</rosparam>
+    </node>
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" />
+
+    <!-- NODI DELLA DEMO (ESCLUSO IL TASK NODE) -->
+   <node name="CartesianTrajActionServer" pkg="yaskawa_cross_modal" type="CartesianTrajActionServer" required="true" output="screen"/>
+   <node name="JointTrajActionServer" pkg="yaskawa_cross_modal" type="JointTrajActionServer" required="true" output="screen"/>
+   <node name="clik" pkg="yaskawa_cross_modal" type="clik" required="true" output="screen"/>
+   <node name="scene_builder" pkg="yaskawa_cross_modal" type="scene_builder" required="true" output="screen">
+</launch>

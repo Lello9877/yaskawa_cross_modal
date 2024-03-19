@@ -1,0 +1,78 @@
+<robot name="gripper_yaskawa_cross_modal" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+<xacro:property name="parent" value="tool0" /> <!--link to attach the gripper-->
+<xacro:property name="pi" value="3.141592654" />
+<xacro:property name="deg" value="0.017453293" /> <!--degrees to radians-->
+<xacro:include filename="$(find yaskawa_cross_modal)/urdf/materials.xacro" />
+
+<link name="base_link_gripper">
+  <inertial>
+    <origin xyz="0.03129440494284765 -0.0236275456406487 0.0633242924961397" rpy="0 0 0"/>
+    <mass value="0.49962194311335323"/>
+    <inertia ixx="0.001045" iyy="0.001292" izz="0.000438" ixy="6.1e-05" iyz="-0.000254" ixz="0.000195"/>
+  </inertial>
+  <visual>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://yaskawa_cross_modal/meshes/flangia.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="white1"/>
+  </visual>
+  <collision>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://yaskawa_cross_modal/meshes/flangia.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<joint name="gripper_joint" type="fixed">
+   <origin xyz="0 0 0" rpy="${-90*deg} 0 ${-90*deg}"/>
+   <parent link="${parent}"/>
+   <child link="base_link_gripper"/>
+</joint>
+
+<link name="blocco_forato">
+  <visual>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://yaskawa_cross_modal/meshes/blocco_forato.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="white1"/>
+  </visual>
+  <collision>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://yaskawa_cross_modal/meshes/blocco_forato.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<joint name="blocco_joint" type="fixed">
+   <origin xyz="0 -0.006 0" rpy="0 0 0"/>
+   <parent link="base_link_gripper"/>
+   <child link="blocco_forato"/>
+</joint>
+
+<link name="sensore">
+  <visual>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://yaskawa_cross_modal/meshes/sensore.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="black"/>
+  </visual>
+  <collision>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://yaskawa_cross_modal/meshes/sensore.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<joint name="sensore_joint" type="fixed">
+   <parent link="blocco_forato"/>
+   <child link="sensore"/>
+</joint>
+
+</robot>
