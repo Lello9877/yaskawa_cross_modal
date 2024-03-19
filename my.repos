@@ -1,0 +1,33 @@
+repositories:
+  ros_toon:
+    type: git
+    url: http://github.com/marcocostanzo/ros_toon.git
+    version: 270ca481ae4da6e8c4697a19922157aac38cd832
+  sun_math_toolbox:
+    type: git
+    url: https://github.com/Vanvitelli-Robotics/sun_math_toolbox.git
+    version: master
+  sun_robot_lib:
+    type: git
+    url: https://github.com/marcocostanzo/sun_robot_lib.git
+    version: separate_clik
+  sun_robot_ros:
+    type: git
+    url: https://github.com/marcocostanzo/sun_robot_ros.git
+    version: master
+  sun_ros_msgs:
+    type: git
+    url: http://github.com/marcocostanzo/sun_ros_msgs.git
+    version: master
+  sun_traj_lib:
+    type: git
+    url: https://github.com/marcocostanzo/sun_traj_lib.git
+    version: master
+  sun_yaskawa_ros:
+    type: git
+    url: https://github.com/marcocostanzo/sun_yaskawa_ros.git
+    version: main
+  yaskawa_cross_modal:
+    type: git
+    url: git@github.com:Lello9877/yaskawa_cross_modal.git
+    version: main
