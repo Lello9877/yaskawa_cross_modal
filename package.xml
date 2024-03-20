@@ -83,10 +83,6 @@
   <depend>moveit_ros_planning_interface</depend>
   <depend>moveit_visual_tools</depend>
   <depend>sun_robot_ros</depend>
-  <depend>sun_robot_lib</depend>
-  <depend>sun_robot_msgs</depend>
-
-
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

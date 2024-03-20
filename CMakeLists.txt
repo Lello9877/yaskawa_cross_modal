@@ -21,8 +21,6 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_ros_planning_interface
   moveit_visual_tools
   sun_robot_ros
-  sun_robot_lib
-  sun_robot_msgs
 )
 
 find_package(Eigen3 REQUIRED)
@@ -86,7 +84,9 @@ add_action_files(
    DEPENDENCIES
    actionlib_msgs
    geometry_msgs
-   #   std_msgs
+   trajectory_msgs
+   sensor_msgs
+   std_msgs
  )
 
 ################################################
