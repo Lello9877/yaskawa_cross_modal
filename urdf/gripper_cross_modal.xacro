@@ -75,4 +75,14 @@
    <child link="sensore"/>
 </joint>
 
+<link name="finger">
+</link>
+
+<joint name="finger_joint" type="fixed">
+   <origin xyz="-0.065 -0.035 0.025" rpy="0 0 0"/>
+   <parent link="sensore"/>
+   <child link="finger"/>
+</joint>
+
+
 </robot>
