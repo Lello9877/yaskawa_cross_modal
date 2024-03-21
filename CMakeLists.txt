@@ -182,6 +182,10 @@ add_executable(task src/task.cpp)
 add_dependencies(task ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(task ${catkin_LIBRARIES})
 
+add_executable(joint_state src/joint_state.cpp)
+add_dependencies(joint_state ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(joint_state ${catkin_LIBRARIES})
+
 #############
 ## Install ##
 #############
