@@ -73,6 +73,7 @@
     <!-- CLik -->
     <node if="$(arg bringup_clik_server)" ns="$(arg namespace)/clik" pkg="sun_yaskawa_nodes" type="motoman_clik" name="motoman_clik" output="screen">
 
+        <remap from="/motoman/joint_states" to="/joint_states"/>
         <param name="use_realtime" value="$(arg use_realtime)" />
 
         <param name="pub_robot_jacobian" value="$(arg clik_pub_robot_jacobian)" />

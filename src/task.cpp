@@ -33,8 +33,8 @@ int main(int argc, char *argv[])
     ros::init(argc,argv,"task");
     ros::NodeHandle nh;
     sun::RobotMotionClient robot(ros::NodeHandle(nh, "motoman"));
-    //robot.waitForServers();
-    
+    robot.waitForServers();
+  
     geometry_msgs::Pose posa;
     posa.position.x = 0;
     posa.position.y = -0.18;
@@ -44,5 +44,5 @@ int main(int argc, char *argv[])
         robot.goTo(posa, ros::Duration(5.0));
         ROS_INFO_STREAM("Posa raggiunta");
     }
-    
+  
 }
