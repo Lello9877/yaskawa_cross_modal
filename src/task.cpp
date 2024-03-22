@@ -43,26 +43,26 @@ int main(int argc, char *argv[])
     posa.orientation.x = 0;
     posa.orientation.y = 0;
     posa.orientation.z = 0;
-    std::vector<double> qf = {0.45, 0.20, 0, 0.8, 0.1, 0, 0};
+    const std::vector<double> qf = {0, 0, 0, 0, 0, 0, 2.50};
 
     tf2_ros::Buffer tfBuffer;
     tf2_ros::TransformListener tfListener(tfBuffer);
     ros::Rate rate(10.0);
 
-    geometry_msgs::TransformStamped transformStamped;
-    try{
-        transformStamped = tfBuffer.lookupTransform("finger", "base_link", ros::Time(0), ros::Duration(3.0)); 
-    }
-    catch (tf2::TransformException &ex) {
-        ROS_WARN("%s",ex.what());
-        ros::Duration(1.0).sleep();
-    }
+    // geometry_msgs::TransformStamped transformStamped;
+    // try{
+    //     transformStamped = tfBuffer.lookupTransform("finger", "tool0", ros::Time(0), ros::Duration(3.0)); 
+    // }
+    // catch (tf2::TransformException &ex) {
+    //     ROS_WARN("%s",ex.what());
+    //     ros::Duration(1.0).sleep();
+    // }
 
-    end_effector.orientation = transformStamped.transform.rotation;
-    end_effector.position.x = transformStamped.transform.translation.x;
-    end_effector.position.y = transformStamped.transform.translation.y;
-    end_effector.position.z = transformStamped.transform.translation.z;
-    robot.set_end_effector(end_effector);
+    // end_effector.orientation = transformStamped.transform.rotation;
+    // end_effector.position.x = transformStamped.transform.translation.x;
+    // end_effector.position.y = transformStamped.transform.translation.y;
+    // end_effector.position.z = transformStamped.transform.translation.z;
+    // robot.fkine_set_end_effector(end_effector);
 
     if(askContinue("Prova")) {
         robot.goTo(posa, ros::Duration(5.0));
