@@ -121,7 +121,20 @@ add_action_files(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES yaskawa_cross_modal
-  CATKIN_DEPENDS actionlib actionlib_msgs geometry_msgs moveit_ros_planning_interface moveit_visual_tools roscpp rospy rviz_visual_tools std_msgs tf2 tf2_eigen tf2_ros sun_robot_ros
+  CATKIN_DEPENDS 
+  actionlib 
+  actionlib_msgs 
+  geometry_msgs 
+  moveit_ros_planning_interface 
+  moveit_visual_tools 
+  roscpp 
+  rospy 
+  rviz_visual_tools 
+  std_msgs 
+  tf2 
+  tf2_eigen 
+  tf2_ros 
+  sun_robot_ros
 #  DEPENDS system_lib
 )
 
