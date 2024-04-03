@@ -1,6 +1,0 @@
-<launch>
-    <include file="$(find yaskawa_moveit_config)/launch/demo.launch"/>
-    <node name="CartesianTrajActionServer" pkg="yaskawa_cross_modal" type="CartesianTrajActionServer" required="true" output="screen"/>
-    <node name="JointTrajActionServer" pkg="yaskawa_cross_modal" type="JointTrajActionServer" required="true" output="screen"/>
-    <node name="clik" pkg="yaskawa_cross_modal" type="clik" required="true" output="screen"/>
-</launch>
