@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
     //const std::vector<double> qf = {-1.53, -0.42, 0, -0.52, 0, -0.94, 1.13};
     const std::vector<double> q0 = {0, 0, 0, 0, 0, 0, 0};
 
-    posa.position.x = 0.0;
+    posa.position.x = 0.40;
     posa.position.y = 0.10;
     posa.position.z = 0.05;
     posa.orientation.w = 0;
