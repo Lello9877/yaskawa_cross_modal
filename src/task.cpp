@@ -38,10 +38,10 @@ int main(int argc, char *argv[])
 
     geometry_msgs::Pose start, posa, end_effector;
 
-    start.position.x = 0.40;
-    start.position.y = 0.10;
-    start.position.z = 0.30;
-    // una buona posa di partenza, in 15 s
+    start.position.x = 0.30;
+    start.position.y = -0.30;
+    start.position.z = 0.21;
+    // una buona posa, in 15 s
     // posa.position.x = 0.60;
     // posa.position.y = 0.10;
     // posa.position.z = 0.30;
@@ -85,49 +85,53 @@ int main(int argc, char *argv[])
     }
 
     if(askContinue("Posizione di partenza")) {
-        robot.goTo(start, ros::Duration(15.0));
+        robot.goTo(start, ros::Duration(25.0));
         ROS_INFO_STREAM("Posa in cartesiano raggiunta");
     }
 
-        if(askContinue("Discesa lungo z")) {
-        robot.goTo(posa, ros::Duration(5.0));
-        ROS_INFO_STREAM("Posa in cartesiano raggiunta");
-    }
+    //     if(askContinue("Discesa lungo z")) {
+    //     robot.goTo(posa, ros::Duration(5.0));
+    //     ROS_INFO_STREAM("Posa in cartesiano raggiunta");
+    // }
 
     // ESPLORAZIONE
 
-    // double x0, y0, z0;
-    // double xf, yf, zf;
-    // double divx, divy, deltax, deltay, deltaz;
+    double x0, y0, z0;
+    double xf, yf, zf;
+    double divx, divy, deltax, deltay, deltaz;
 
-    // x0 = 0;
-    // y0 = -0.25;
-    // z0 = 0.25;
-    // xf = 0.70;
-    // yf = -0.025;
-    // divx = 4;
-    // divy  = 8;
-    // deltax = (xf-x0)/divx;
-    // deltay = (yf-y0)/divy;
-    // deltaz = -0.03;
-    // std::vector<geometry_msgs::Pose> grid;
-    // geometry_msgs::Pose temp;
-    // geometry_msgs::Quaternion orient;
+    x0 = 0.30;
+    y0 = -0.30;
+    z0 = 0.21;
+    xf = 0.50;
+    yf = -0.05;
+    divx = 4;
+    divy  = 8;
+    deltax = (xf-x0)/divx;
+    deltay = (yf-y0)/divy;
+    deltaz = -0.03;
+    std::vector<geometry_msgs::Pose> grid;
+    geometry_msgs::Pose initial;
+    initial.orientation.w = 0;
+    initial.orientation.x = 0;
+    initial.orientation.y = 1;
+    initial.orientation.z = 0;
+    initial.position.x = 0.30;
+    initial.position.y = -0.30;
+    initial.position.z = 0.21;
+    
+    // Costruisco la griglia
+    for(int i = 0; i < divy; i++)
+        for(int j = 0; j < divx; j++) {
+            initial.position.x = x0 + j*deltax;
+            initial.position.y = y0 + i*deltay;
+            initial.position.z = z0;
+            grid.push_back(initial);
+        }
+    
+    for(int i = 0; i < grid.size(); i++)
+        std::cout << grid[i];
 
-    // orient.w = cos(M_PI_2/2);
-    // orient.x = sin(M_PI_2/2);
-    // orient.y = 0;
-    // orient.z = 0;
-    // temp.orientation = orient;
-    
-    // for(int i = 0; i < divx; i++)
-    //     for(int j = 0; j < divy; j++) {
-    //         temp.position.x = x0 + i*deltax;
-    //         temp.position.y = y0 + j*deltay;
-    //         temp.position.z = z0;
-    //         grid.push_back(temp);
-    //     }
-    
     // for(int i = 0; i < grid.size(); i++)
     //     if(askContinue("Prossima posa")) {
     //         double z = z0;
