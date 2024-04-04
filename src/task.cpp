@@ -36,16 +36,29 @@ int main(int argc, char *argv[])
     sun::RobotMotionClient robot(ros::NodeHandle(nh, "motoman"));
     robot.waitForServers();
 
-    geometry_msgs::Pose posa, end_effector;
+    geometry_msgs::Pose start, posa, end_effector;
 
-    posa.position.x = 0;
-    posa.position.y = -0.18;
-    posa.position.z = 0.25;
-    posa.orientation.w = 1;
+    start.position.x = 0.45;
+    start.position.y = 0;
+    start.position.z = 0.30;
+    // una buona posa di partenza, in 15 s
+    // posa.position.x = 0.60;
+    // posa.position.y = 0.10;
+    // posa.position.z = 0.30;
+    start.orientation.w = 0;
+    start.orientation.x = 0;
+    start.orientation.y = 1;
+    start.orientation.z = 0;
+    //const std::vector<double> qf = {-1.53, -0.42, 0, -0.52, 0, -0.94, 1.13};
+    const std::vector<double> q0 = {0, 0, 0, 0, 0, 0, 0};
+
+    posa.position.x = 0.45;
+    posa.position.y = 0;
+    posa.position.z = 0.05;
+    posa.orientation.w = 0;
     posa.orientation.x = 0;
-    posa.orientation.y = 0;
+    posa.orientation.y = 1;
     posa.orientation.z = 0;
-    //const std::vector<double> qf = {0, 0, 0, 0, 0, 0, 2.5};
 
     tf2_ros::Buffer tfBuffer;
     tf2_ros::TransformListener tfListener(tfBuffer);
@@ -53,7 +66,7 @@ int main(int argc, char *argv[])
 
     geometry_msgs::TransformStamped transformStamped;
     try {
-        transformStamped = tfBuffer.lookupTransform("finger", "tool0", ros::Time(0), ros::Duration(3.0)); 
+        transformStamped = tfBuffer.lookupTransform("tool0", "finger", ros::Time(0), ros::Duration(3.0)); 
     }
     catch (tf2::TransformException &ex) {
         ROS_WARN("%s",ex.what());
@@ -66,9 +79,19 @@ int main(int argc, char *argv[])
     end_effector.position.z = transformStamped.transform.translation.z;
     robot.clik_.set_end_effector(end_effector);
 
-    if(askContinue("Prova")) {
+    if(askContinue("Home")) {
+        robot.goTo(q0, ros::Duration(5.0));
+        ROS_INFO_STREAM("Posa in spazio dei giunti raggiunta");
+    }
+
+    if(askContinue("Posizione di partenza")) {
+        robot.goTo(start, ros::Duration(15.0));
+        ROS_INFO_STREAM("Posa in cartesiano raggiunta");
+    }
+
+        if(askContinue("Discesa lungo z")) {
         robot.goTo(posa, ros::Duration(5.0));
-        ROS_INFO_STREAM("Posa raggiunta");
+        ROS_INFO_STREAM("Posa in cartesiano raggiunta");
     }
 
     // ESPLORAZIONE
