@@ -6,6 +6,7 @@
 #include <tf2_ros/transform_listener.h>
 #include <sun_robot_ros/RobotMotionClient.h>
 #include <sun_robot_ros/ClikClient.h>
+#include <geometry_msgs/PoseArray.h>
 
 bool askContinue(const std::string &prompt = "")
 {
@@ -26,9 +27,6 @@ bool askContinue(const std::string &prompt = "")
     throw std::runtime_error("USER STOP!");
 }
 
-// Metodo goTo in cartesiano, parametri di ingresso:
-// posa desiderata, duration, time, bool wait, bool trapez, double trapez lin, double trapez vel
-
 int main(int argc, char *argv[])
 {
     ros::init(argc,argv,"task");
@@ -40,7 +38,7 @@ int main(int argc, char *argv[])
 
     start.position.x = 0.30;
     start.position.y = -0.30;
-    start.position.z = 0.21;
+    start.position.z = 0.24;
     // una buona posa, in 15 s
     // posa.position.x = 0.60;
     // posa.position.y = 0.10;
@@ -62,7 +60,7 @@ int main(int argc, char *argv[])
 
     tf2_ros::Buffer tfBuffer;
     tf2_ros::TransformListener tfListener(tfBuffer);
-    ros::Rate rate(10.0);
+    ros::Rate loop_rate(50.0);
 
     geometry_msgs::TransformStamped transformStamped;
     try {
@@ -84,7 +82,7 @@ int main(int argc, char *argv[])
         ROS_INFO_STREAM("Posa in spazio dei giunti raggiunta");
     }
 
-    if(askContinue("Posizione di partenza")) {
+    if(askContinue("Posizione utile")) {
         robot.goTo(start, ros::Duration(25.0));
         ROS_INFO_STREAM("Posa in cartesiano raggiunta");
     }
@@ -96,56 +94,63 @@ int main(int argc, char *argv[])
 
     // ESPLORAZIONE
 
-    double x0, y0, z0;
+    double x0, y0, z0, z;
     double xf, yf, zf;
     double divx, divy, deltax, deltay, deltaz;
 
     x0 = 0.30;
     y0 = -0.30;
     z0 = 0.21;
-    xf = 0.50;
-    yf = -0.05;
-    divx = 4;
-    divy  = 8;
+    xf = 0.45;
+    yf = 0.30;
+    divx = 3;
+    divy = 15;
     deltax = (xf-x0)/divx;
     deltay = (yf-y0)/divy;
     deltaz = -0.03;
-    std::vector<geometry_msgs::Pose> grid;
-    geometry_msgs::Pose initial;
+
+    //std::vector<geometry_msgs::Pose> grid;
+    geometry_msgs::PoseArray grid;
+    geometry_msgs::Pose initial, esplor;
+
+    initial.position.z = z0;
     initial.orientation.w = 0;
     initial.orientation.x = 0;
     initial.orientation.y = 1;
     initial.orientation.z = 0;
-    initial.position.x = 0.30;
-    initial.position.y = -0.30;
-    initial.position.z = 0.21;
-    
+
     // Costruisco la griglia
-    for(int i = 0; i < divy; i++)
+    for(int i = 0; i < divy; i++) {
+        initial.position.y = y0 + i*deltay;
         for(int j = 0; j < divx; j++) {
             initial.position.x = x0 + j*deltax;
-            initial.position.y = y0 + i*deltay;
-            initial.position.z = z0;
-            grid.push_back(initial);
+            grid.poses.push_back(initial);
         }
-    
-    for(int i = 0; i < grid.size(); i++)
-        std::cout << grid[i];
+    }
+
+    std::cout << grid.poses.size();
+    std::cout << grid.poses[44];
+
+    // ros::Publisher pub_poses = nh.advertise<geometry_msgs::PoseArray>("/grid",1);
+    // while(ros::ok())
+    //     pub_poses.publish(grid);
 
     // for(int i = 0; i < grid.size(); i++)
-    //     if(askContinue("Prossima posa")) {
-    //         double z = z0;
-    //         geometry_msgs::Pose esplor;
-    //         esplor = grid[i];
-    //         //robot.goTo(grid[i], ros::Duration(5.0));
-    //         do
-    //         {   
-    //             //{condizione di tocco del cavo, altrimenti scendi ancora}
-    //             z = z + deltaz;
-    //             esplor.position.z = z;
-    //             //robot.goTo(esplor, ros::Duration(1.5));
-    //             ROS_INFO_STREAM("Posa raggiunta");
+    //     std::cout << grid[i].position << std::endl;
 
-    //         } while(ros::ok() && z > 0.02);
-    //     }
+    for(int i = 0; i < grid.poses.size(); i++) {
+        if(askContinue("Prossima posa di esplorazione")) {
+            z = z0;
+            esplor = grid.poses[i];
+            do
+            {   
+                if(askContinue("Esplora")) { robot.goTo(esplor, ros::Duration(5.0)); ROS_INFO_STREAM("Posa raggiunta"); }
+                //{condizione di tocco del cavo, altrimenti scendi ancora}
+                z = z + deltaz;
+                esplor.position.z = z;
+                std::cout << z << std::endl;
+            } while(ros::ok() && z > 0.13);
+        }
+        else { break; } 
+    }
 }

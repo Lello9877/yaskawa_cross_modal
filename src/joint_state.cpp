@@ -6,6 +6,7 @@ sensor_msgs::JointState cmd_msg;
 void cmd_cb(const sensor_msgs::JointStateConstPtr& msg){
     cmd_msg.position = msg->position;
     cmd_msg.velocity = msg->velocity;
+    //cmd_msg = *msg;
 }
 
 int main(int argc, char* argv[]) {

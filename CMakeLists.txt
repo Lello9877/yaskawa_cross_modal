@@ -203,6 +203,10 @@ add_executable(fake_motoman src/fake_motoman.cpp)
 add_dependencies(fake_motoman ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(fake_motoman ${catkin_LIBRARIES})
 
+add_executable(grid src/grid.cpp)
+add_dependencies(grid ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(grid ${catkin_LIBRARIES})
+
 #############
 ## Install ##
 #############
