@@ -42,6 +42,9 @@
 
     <arg name="rate" default="500.0" />
 
+    <!-- grid_srv -->
+    <node name="grid_srv" pkg="yaskawa_cross_modal" type="grid_srv"/>
+
     <node if="$(arg bringup_nodelet_manager)" pkg="nodelet" type="nodelet" name="$(arg nodelet_name)" args="manager" output="screen" />
 
     <!-- Traj Server -->
@@ -51,6 +54,7 @@
         <param name="action_name" value="joint_traj_action" />
         <param name="use_realtime" value="$(arg use_realtime)" />
     </node>
+
 
     <!-- Cart Traj -->
     <node if="$(arg bringup_cartesian_traj_server)" ns="$(arg namespace)" pkg="nodelet" type="nodelet" name="cartesian_traj_nodelet" args="load sun_robot_ros/CartesianTrajectoryServerNodelet /$(arg nodelet_name)" output="screen">

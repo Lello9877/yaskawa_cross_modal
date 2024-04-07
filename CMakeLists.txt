@@ -66,11 +66,10 @@ find_package(Eigen3 REQUIRED)
 # )
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+add_service_files(
+  FILES
+  grid.srv
+)
 
 ## Generate actions in the 'action' folder
 add_action_files(
@@ -203,9 +202,9 @@ add_executable(fake_motoman src/fake_motoman.cpp)
 add_dependencies(fake_motoman ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(fake_motoman ${catkin_LIBRARIES})
 
-add_executable(grid src/grid.cpp)
-add_dependencies(grid ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(grid ${catkin_LIBRARIES})
+add_executable(grid_srv src/grid_srv.cpp)
+add_dependencies(grid_srv ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(grid_srv ${catkin_LIBRARIES})
 
 #############
 ## Install ##
