@@ -1,6 +1,6 @@
 #include <ros/ros.h>
 #include <geometry_msgs/PoseArray.h>
-#include "yaskawa_cross_modal/grid.h"
+#include <yaskawa_cross_modal/grid.h>
 
 geometry_msgs::PoseArray grid;
 bool call_arrived = false;

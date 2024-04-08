@@ -8,6 +8,9 @@
 #include <sun_robot_ros/ClikClient.h>
 #include <geometry_msgs/PoseArray.h>
 #include "yaskawa_cross_modal/grid.h"
+#include "sun_tactile_common/TactileStamped.h"
+
+bool touched = false;
 
 bool askContinue(const std::string &prompt = "")
 {
@@ -28,8 +31,17 @@ bool askContinue(const std::string &prompt = "")
     throw std::runtime_error("USER STOP!");
 }
 
-void grid_cb(const geometry_msgs::PoseArrayPtr& msg){
+void tact_cb(const sun_tactile_common::TactileStampedPtr &msg){
+
+    double sum = 0, treshold = 13.99;
+    for(int i = 0; i < msg->tactile.data.size(); i++) 
+        sum = sum + msg->tactile.data[i];
     
+    if(sum <= treshold) touched = false;
+    else touched = true;
+
+    // Somma delle tensioni senza contatto: 13.91, 13.85
+    // std::cout << sum << std::endl;
 }
 
 int main(int argc, char *argv[])
@@ -48,7 +60,7 @@ int main(int argc, char *argv[])
 
     start.position.x = 0.30;
     start.position.y = -0.30;
-    start.position.z = 0.24; 
+    start.position.z = 0.29; 
     start.orientation.w = 0;
     start.orientation.x = 0;
     start.orientation.y = 1;
@@ -86,6 +98,7 @@ int main(int argc, char *argv[])
 
     // ESPLORAZIONE
 
+    ros::Subscriber sub_volt = nh.subscribe("/tactile_voltage", 1, tact_cb);
     geometry_msgs::PoseArray grid;
     ros::ServiceClient grid_client = nh.serviceClient<yaskawa_cross_modal::grid>("grid_srv");
     yaskawa_cross_modal::grid srv;
@@ -99,23 +112,30 @@ int main(int argc, char *argv[])
     else { ROS_INFO("Errore nella generazione della griglia"); }
     //std::cout << grid.poses.size();
 
-    double deltaz = -0.03;
+    double z, z0 = 0.265, deltaz = -0.0070;
     geometry_msgs::Pose esplor;
 
-    // for(int i = 0; i < grid.poses.size(); i++) {
-    //     if(askContinue("Prossima posa di esplorazione")) {
-    //         z = z0;
-    //         esplor = grid.poses[i];
-    //         esplor.position.z = z;
-    //         do
-    //         {   
-    //             if(askContinue("Esplora")) { robot.goTo(esplor, ros::Duration(5.0)); ROS_INFO_STREAM("Posa raggiunta"); }
-    //             //{condizione di tocco del cavo, altrimenti scendi ancora}
-    //             z = z + deltaz;
-    //             esplor.position.z = z;
-    //             std::cout << z << std::endl;
-    //         } while(ros::ok() && z > 0.13);
-    //     }
-    //     else { break; } 
-    // }
+
+    for(int i = 0; i < grid.poses.size(); i++) {
+        //if(askContinue("Prossima posa di esplorazione")) {
+            touched = false;
+            z = z0;
+            esplor = grid.poses[i];
+            esplor.position.z = z;
+            while(ros::ok() && z > 0.245 && touched == false)
+            {   
+                /*if(askContinue("Esplora"))*/ { robot.goTo(esplor, ros::Duration(5.0)); ROS_INFO_STREAM("Posa raggiunta"); }
+                //{condizione di tocco del cavo, altrimenti scendi ancora}
+                z = z + deltaz;
+                esplor.position.z = z;
+                std::cout << z << std::endl;
+                ros::spinOnce();
+                if(touched)
+                    std::cout << esplor.position;
+            }
+        //}
+        //else { break; } 
+    }
+
+    return 0;
 }
