@@ -1,4 +1,4 @@
-# Input
+# Request
 float64 x0
 float64 y0
 float64 xf
@@ -6,5 +6,5 @@ float64 yf
 int64 divx
 int64 divy
 ---
-# Output 
+# Response
 geometry_msgs/PoseArray grid

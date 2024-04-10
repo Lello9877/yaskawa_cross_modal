@@ -198,10 +198,6 @@ add_executable(joint_state src/joint_state.cpp)
 add_dependencies(joint_state ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(joint_state ${catkin_LIBRARIES})
 
-add_executable(fake_motoman src/fake_motoman.cpp)
-add_dependencies(fake_motoman ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(fake_motoman ${catkin_LIBRARIES})
-
 add_executable(grid_srv src/grid_srv.cpp)
 add_dependencies(grid_srv ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(grid_srv ${catkin_LIBRARIES})

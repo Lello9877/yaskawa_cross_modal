@@ -84,4 +84,13 @@
    <child link="finger"/>
 </joint>
 
+<link name="reference_taxel">
+</link>
+
+<joint name="reference_taxel_joint" type="fixed">
+   <origin xyz="-0.011 -0.005 0.005" rpy="0 0 0"/>
+   <parent link="finger"/>
+   <child link="reference_taxel"/>
+</joint>
+
 </robot>
