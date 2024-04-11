@@ -1,4 +1,5 @@
 #include <ros/ros.h>
+#include <tf/tf.h>
 #include <tf2_ros/transform_listener.h>
 #include <sun_robot_ros/RobotMotionClient.h>
 #include <geometry_msgs/PoseArray.h>
@@ -7,6 +8,7 @@
 #include "yaskawa_cross_modal/dynamicArray.h"
 #include <sensor_msgs/PointCloud.h>
 #include <sensor_msgs/PointCloud2.h>
+#include <Eigen/Dense>
 
 bool touched = false;
 sun_tactile_common::TactileStamped tensione;
@@ -30,7 +32,6 @@ bool askContinue(const std::string &prompt = "")
     throw std::runtime_error("USER STOP!");
 }
 
-
 void tact_cb(const sun_tactile_common::TactileStampedPtr &msg){
 
     double sum = 0, treshold = 13.99;
@@ -41,7 +42,6 @@ void tact_cb(const sun_tactile_common::TactileStampedPtr &msg){
     else touched = true;
 
     // Somma delle tensioni senza contatto: 13.91, 13.85
-    // std::cout << sum << std::endl;
 }
 
 int main(int argc, char *argv[])
@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
     robot.waitForServers();
 
     geometry_msgs::Pose start, posa, end_effector;
-    ros::Publisher pub_pcl = nh.advertise<sensor_msgs::PointCloud>("/pcl",1);
+    ros::Publisher pcl_pub = nh.advertise<sensor_msgs::PointCloud>("/pcl",1);
 
     // una buona posa, in 15 s
     // posa.position.x = 0.60;
@@ -97,6 +97,18 @@ int main(int argc, char *argv[])
         ROS_INFO_STREAM("Posa in cartesiano raggiunta");
     }
 
+
+    // Eigen::Vector3d p(transformStamped.transform.translation.x,transformStamped.transform.translation.y,transformStamped.transform.translation.z);
+    // Eigen::Quaterniond q(transformStamped.transform.rotation.w,transformStamped.transform.rotation.x,transformStamped.transform.rotation.y,transformStamped.transform.rotation.z);
+    // q.normalize();
+    // Eigen::Matrix3d R = q.toRotationMatrix();
+    // std::cout << p << std::endl;
+    // std::cout << R << std::endl;
+    // std::cout << R*p;
+    
+    
+    // std::cout << R*p;
+
     // ESPLORAZIONE
 
     ros::Subscriber sub_volt = nh.subscribe("/tactile_voltage", 1, tact_cb);
@@ -115,12 +127,12 @@ int main(int argc, char *argv[])
 
     double z, z0 = 0.265, deltaz = -0.0070;
     geometry_msgs::Pose esplor;
+    int dim = 12;
 
-    double k[12];
+    double k[dim];
     {
-        double h_min = -0.08, h_max = -0.06;
+        double h_min = -0.0008, h_max = -0.0006;
         double h = h_max - h_min;
-        int dim = 12;
         double v_max[dim] = {1.65, 1.58, 1.44, 1.41, 1.34, 1.13, 3.04, 1.07, 1.28, 1.17, 1.44, 1.03};
         double v_min[dim] = {1, 1.04, 1, 1.06, 1, 0.95, 3.02, 0.90, 0.96, 1, 1.11, 0.86};
 
@@ -149,28 +161,32 @@ int main(int argc, char *argv[])
                 ros::spinOnce();
                 if(touched) {
                     std::cout << esplor.position;
+                    geometry_msgs::TransformStamped tf_b_to_s;
                     try {
-                        transformStamped = tfBuffer.lookupTransform("base_link", "reference_taxel", ros::Time(0), ros::Duration(3.0)); 
+                        tf_b_to_s = tfBuffer.lookupTransform("base_link", "reference_taxel", ros::Time(0), ros::Duration(3.0)); 
                     }
                     catch (tf2::TransformException &ex) {
                         ROS_WARN("%s",ex.what());
                         ros::Duration(1.0).sleep();
                     }
                     double offset = 0.0035;
-                    geometry_msgs::Pose reference_pose;
+                    geometry_msgs::Pose p_si;
+                    geometry_msgs::Pose o_b_s;
                     geometry_msgs::Point32 pcl[tensione.tactile.data.size()];
                     
-                    reference_pose.position.x = transformStamped.transform.translation.x;
-                    reference_pose.position.y = transformStamped.transform.translation.y;
-                    reference_pose.position.x = transformStamped.transform.translation.z;
-                    reference_pose.orientation = transformStamped.transform.rotation;
+                    o_b_s.position.x = transformStamped.transform.translation.x;
+                    o_b_s.position.y = transformStamped.transform.translation.y;
+                    o_b_s.position.z = transformStamped.transform.translation.z;
+                    o_b_s.orientation = transformStamped.transform.rotation;
 
-                    double refx = reference_pose.position.x;
+
+                    double refx = o_b_s.position.x;
                     double refy;
                     int count = 0;
+                     
 
                     for(int j = 0; j < tensione.tactile.rows; j++) {
-                        refy = reference_pose.position.y; 
+                        refy = o_b_s.position.y; 
                         for(int l = 0; l < tensione.tactile.cols; l++) {
                              pcl[count].x = refx;
                              pcl[count].y = refy;
@@ -189,6 +205,8 @@ int main(int argc, char *argv[])
             }
             int dim = PCL.size();
             std::cout << PCL.size() << std::endl;
+            for(int i = 0; i < dim; i++) 
+                std::cout << PCL.at(i) << std::endl;
 
         //}
         //else { break; } 
@@ -197,8 +215,8 @@ int main(int argc, char *argv[])
             for(int i = 0; i < PCL.size(); i++) {
                 temp.points.push_back(PCL.at(i));
             }
-            pub_pcl.publish(temp);
-            
+            temp.header.stamp = ros::Time::now();
+            pcl_pub.publish(temp);
     }
     return 0;
 }
