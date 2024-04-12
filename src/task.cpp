@@ -105,11 +105,8 @@ int main(int argc, char *argv[])
     // std::cout << p << std::endl;
     // std::cout << R << std::endl;
     // std::cout << R*p;
-    
-    
-    // std::cout << R*p;
 
-    // ESPLORAZIONE
+    // Creazione griglia
 
     ros::Subscriber sub_volt = nh.subscribe("/tactile_voltage", 1, tact_cb);
     geometry_msgs::PoseArray grid;
@@ -123,15 +120,12 @@ int main(int argc, char *argv[])
     srv.request.divy = 15;
     if(grid_client.call(srv)) { grid = srv.response.grid; ROS_INFO("Griglia ottenuta"); }
     else { ROS_INFO("Errore nella generazione della griglia"); }
-    //std::cout << grid.poses.size();
 
-    double z, z0 = 0.265, deltaz = -0.0070;
-    geometry_msgs::Pose esplor;
     int dim = 12;
 
     double k[dim];
     {
-        double h_min = -0.0008, h_max = -0.0006;
+        double h_min = -0.008, h_max = -0.006;
         double h = h_max - h_min;
         double v_max[dim] = {1.65, 1.58, 1.44, 1.41, 1.34, 1.13, 3.04, 1.07, 1.28, 1.17, 1.44, 1.03};
         double v_min[dim] = {1, 1.04, 1, 1.06, 1, 0.95, 3.02, 0.90, 0.96, 1, 1.11, 0.86};
@@ -144,6 +138,27 @@ int main(int argc, char *argv[])
     //     std::cout << k[i] << std::endl;
 
     std::vector<geometry_msgs::Point32> PCL;
+
+    double refx = 0;
+    double refy;
+    int count = 0;
+    double offset = 0.0035;
+    Eigen::Vector3d p_si[dim];
+
+    for(int j = 0; j < 6; j++) {
+        refy = 0;
+        for(int l = 0; l < 2; l++) {
+            Eigen::Vector3d temp(refx,refy,0);
+            p_si[count] = temp;
+            refy = refy + offset;
+            count++;
+        }
+        refx = refx + offset;
+    }
+
+    // Inizio Esplorazione
+    geometry_msgs::Pose esplor;
+    double z, z0 = 0.265, deltaz = -0.0070;
 
     for(int i = 0; i < grid.poses.size(); i++) {
         //if(askContinue("Prossima posa di esplorazione")) {
@@ -160,63 +175,58 @@ int main(int argc, char *argv[])
                 std::cout << z << std::endl;
                 ros::spinOnce();
                 if(touched) {
+
                     std::cout << esplor.position;
-                    geometry_msgs::TransformStamped tf_b_to_s;
+                    geometry_msgs::TransformStamped tf_b_s;
                     try {
-                        tf_b_to_s = tfBuffer.lookupTransform("base_link", "reference_taxel", ros::Time(0), ros::Duration(3.0)); 
+                        tf_b_s = tfBuffer.lookupTransform("base_link", "reference_taxel", ros::Time(0), ros::Duration(3.0)); 
                     }
                     catch (tf2::TransformException &ex) {
                         ROS_WARN("%s",ex.what());
                         ros::Duration(1.0).sleep();
                     }
-                    double offset = 0.0035;
-                    geometry_msgs::Pose p_si;
-                    geometry_msgs::Pose o_b_s;
-                    geometry_msgs::Point32 pcl[tensione.tactile.data.size()];
-                    
-                    o_b_s.position.x = transformStamped.transform.translation.x;
-                    o_b_s.position.y = transformStamped.transform.translation.y;
-                    o_b_s.position.z = transformStamped.transform.translation.z;
-                    o_b_s.orientation = transformStamped.transform.rotation;
 
+                    // Estrapolo l'origine della terna sensore di riferimento per le celle
+                    Eigen::Vector3d o_b_s(tf_b_s.transform.translation.x, tf_b_s.transform.translation.y, tf_b_s.transform.translation.z);
+                    vector<geometry_msgs::Point32> pcl;
+                    pcl.resize(tensione.tactile.data.size());
 
-                    double refx = o_b_s.position.x;
-                    double refy;
-                    int count = 0;
-                     
-
-                    for(int j = 0; j < tensione.tactile.rows; j++) {
-                        refy = o_b_s.position.y; 
-                        for(int l = 0; l < tensione.tactile.cols; l++) {
-                             pcl[count].x = refx;
-                             pcl[count].y = refy;
-                             refy = refy + offset;
-                             count++;
-                        }
-                        refx = refx + offset;
-                    }
+                    Eigen::Quaterniond q(tf_b_s.transform.rotation.w, tf_b_s.transform.rotation.x, tf_b_s.transform.rotation.y , tf_b_s.transform.rotation.z);
+                    q.normalize();
+                    Eigen::Matrix3d R_b_s = q.toRotationMatrix();
+                    Eigen::Vector3d m;
 
                     for(int i = 0; i < tensione.tactile.data.size(); i++) {
-                        pcl[i].z = k[i]*tensione.tactile.data[i];
-                        PCL.push_back(pcl[i]);
+                        p_si[i].z() = k[i]*tensione.tactile.data[i];
+                        std::cout << i << std::endl;
+                        //PCL.push_back(pcl[i]);
                         //std::cout << "x: " << pcl[i].x << std::endl << "y: " << pcl[i].y << std::endl << "z: " << pcl[i].z << std::endl << std::endl;
+                    }
+
+                    // Calcolo il vettore posizione della singola cella rispetto alla terna base
+                    Eigen::Vector3d p_b_s;
+                    for(int i = 0; i < tensione.tactile.data.size(); i++) {
+                        p_b_s = o_b_s + R_b_s*p_si[i];
+                        pcl.at(i).x = p_b_s.x();
+                        pcl.at(i).y = p_b_s.y();
+                        pcl.at(i).z = p_b_s.z();
+                        PCL.push_back(pcl.at(i));
                     }
                 }
             }
             int dim = PCL.size();
             std::cout << PCL.size() << std::endl;
-            for(int i = 0; i < dim; i++) 
-                std::cout << PCL.at(i) << std::endl;
 
         //}
-        //else { break; } 
-            sensor_msgs::PointCloud temp;
-            temp.header.frame_id = "base_link";
-            for(int i = 0; i < PCL.size(); i++) {
-                temp.points.push_back(PCL.at(i));
-            }
-            temp.header.stamp = ros::Time::now();
-            pcl_pub.publish(temp);
+        //else { break; }
+
+            sensor_msgs::PointCloud cluster;
+            cluster.header.frame_id = "base_link";
+            for(int i = 0; i < PCL.size(); i++)
+                cluster.points.push_back(PCL.at(i));
+
+            cluster.header.stamp = ros::Time::now();
+            pcl_pub.publish(cluster);
     }
     return 0;
 }
