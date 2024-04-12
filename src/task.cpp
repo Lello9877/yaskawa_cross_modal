@@ -35,10 +35,16 @@ bool askContinue(const std::string &prompt = "")
 void tact_cb(const sun_tactile_common::TactileStampedPtr &msg){
 
     double sum = 0, treshold = 13.99;
-    for(int i = 0; i < msg->tactile.data.size(); i++) 
+    double v_min[msg->tactile.data.size()] = {1, 1.04, 1, 1.06, 1, 0.95, 3.02, 0.90, 0.96, 1, 1.11, 0.86};
+    for(int i = 0; i < msg->tactile.data.size(); i++) {
         sum = sum + msg->tactile.data[i];
+        msg->tactile.data[i] = msg->tactile.data[i] - v_min[i];
+    }
     
-    if(sum <= treshold) { tensione = *msg; touched = false; }
+    if(sum <= treshold) { 
+        tensione = *msg;
+        touched = false; 
+    }
     else touched = true;
 
     // Somma delle tensioni senza contatto: 13.91, 13.85
@@ -198,7 +204,8 @@ int main(int argc, char *argv[])
 
                     for(int i = 0; i < tensione.tactile.data.size(); i++) {
                         p_si[i].z() = k[i]*tensione.tactile.data[i];
-                        std::cout << i << std::endl;
+                        //p_si[i].z() = 1*tensione.tactile.data[i];
+                        // std::cout << i << std::endl;
                         //PCL.push_back(pcl[i]);
                         //std::cout << "x: " << pcl[i].x << std::endl << "y: " << pcl[i].y << std::endl << "z: " << pcl[i].z << std::endl << std::endl;
                     }
