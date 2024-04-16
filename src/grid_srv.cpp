@@ -16,15 +16,15 @@ bool srv_cb(yaskawa_cross_modal::grid::Request &req, yaskawa_cross_modal::grid::
 
     initial.position.z = 0;
     initial.orientation.w = 0;
-    initial.orientation.x = 0;
-    initial.orientation.y = 1;
+    initial.orientation.x = 0.7071;
+    initial.orientation.y = 0.7071;
     initial.orientation.z = 0;
 
     // Costruisco la griglia
-    for(int i = 0; i < req.divy; i++) {
-        initial.position.y = req.y0 + i*deltay;
-        for(int j = 0; j < req.divx; j++) {
-            initial.position.x = req.x0 + j*deltax;
+    for(int i = 0; i < req.divx; i++) {
+        initial.position.x = req.x0 + i*deltax;
+        for(int j = 0; j < req.divy; j++) {
+            initial.position.y = req.y0 + j*deltay;
             temp_grid.poses.push_back(initial);
         }
     }
