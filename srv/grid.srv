@@ -5,6 +5,11 @@ float64 xf
 float64 yf
 int64 divx
 int64 divy
+float64 w
+float64 x
+float64 y
+float64 z
+float64 quota
 ---
 # Response
 geometry_msgs/PoseArray grid

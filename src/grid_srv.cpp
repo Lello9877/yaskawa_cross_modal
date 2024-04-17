@@ -14,11 +14,11 @@ bool srv_cb(yaskawa_cross_modal::grid::Request &req, yaskawa_cross_modal::grid::
     deltax = (req.xf-req.x0)/req.divx;
     deltay = (req.yf-req.y0)/req.divy;
 
-    initial.position.z = 0;
-    initial.orientation.w = 0;
-    initial.orientation.x = 0.7071;
-    initial.orientation.y = 0.7071;
-    initial.orientation.z = 0;
+    initial.position.z = req.quota;
+    initial.orientation.w = req.w;
+    initial.orientation.x = req.x;
+    initial.orientation.y = req.y;
+    initial.orientation.z = req.z;
 
     // Costruisco la griglia
     for(int i = 0; i < req.divx; i++) {
