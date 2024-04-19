@@ -12,12 +12,11 @@
 bool touched = false;
 sun_tactile_common::TactileStamped tensione;
 geometry_msgs::PoseStamped base_finger;
-//sensor_msgs::JointState q;
 
 bool askContinue(const std::string &prompt = "")
 {
     char ans;
-    std::cout << prompt << " - Press y to continue [s to skeep]: ";
+    std::cout << prompt << " - Press y to continue [s to skip]: ";
     std::cin >> ans;
 
     if (ans == 'y' || ans == 'Y')
@@ -46,7 +45,7 @@ bool askContinue(const std::string &prompt = "")
 //     w: 0.05496752040658338
 
 
-void tact_cb(const sun_tactile_common::TactileStampedPtr &msg){
+void tact_cb(const sun_tactile_common::TactileStampedPtr &msg) {
 
     double sum = 0, treshold = 13.99;
     double v_min[msg->tactile.data.size()] = {1, 1.04, 1, 1.06, 1, 0.95, 3.02, 0.90, 0.96, 1, 1.11, 0.86};
@@ -64,7 +63,25 @@ void tact_cb(const sun_tactile_common::TactileStampedPtr &msg){
     // Somma delle tensioni senza contatto: 13.91, 13.85
 }
 
-void fkine_cb(const geometry_msgs::PoseStampedPtr &msg) { base_finger = *msg; }
+void fkine_cb(const geometry_msgs::PoseStampedPtr &msg) {
+    
+    base_finger = *msg;
+    Eigen::Quaterniond q(msg->pose.orientation.w, msg->pose.orientation.x, msg->pose.orientation.y, msg->pose.orientation.z);
+    q.normalize();
+    base_finger.pose.orientation.w = q.w();
+    base_finger.pose.orientation.x = q.x();
+    base_finger.pose.orientation.y = q.y();
+    base_finger.pose.orientation.z = q.z();
+    
+}
+int count = 0;
+void motoman_cb(const sensor_msgs::JointStatePtr &msg) {
+
+    std::cout << "####### CALLBACK LELLO #########" << std::endl;
+    count++;
+    std::cout << count << std::endl;
+    
+}
 
 int main(int argc, char *argv[])
 {
@@ -79,22 +96,33 @@ int main(int argc, char *argv[])
     ros::Publisher pcl_centr_pub = nh.advertise<sensor_msgs::PointCloud>("/pcl2",1);
     ros::Subscriber sub_volt = nh.subscribe("/tactile_voltage", 1, tact_cb);
     ros::Subscriber sub_fkine = nh.subscribe("/motoman/clik/fkine", 1, fkine_cb);
+    ros::Subscriber sub_motoman = nh.subscribe("/motoman/joint_states", 1, motoman_cb);
     geometry_msgs::PoseArray grid;
     ros::ServiceClient grid_client = nh.serviceClient<yaskawa_cross_modal::grid>("grid_srv");
     yaskawa_cross_modal::grid srv;
-
+    geometry_msgs::Pose prova;
+    Eigen::Quaterniond Q(0, 0.7071, 0.7071, 0);
+    Q.normalize();
     start.position.x = -0.195;
     start.position.y = -0.40;
     start.position.z = 0.29; 
-    start.orientation.w = 0;
-    start.orientation.x = 0.7071;
-    start.orientation.y = 0.7071;
-    start.orientation.z = 0;
+    start.orientation.w = Q.w();
+    start.orientation.x = Q.x();
+    start.orientation.y = Q.y();
+    start.orientation.z = Q.z();
     const std::vector<double> q0 = {-1.6097532510757446, -0.34197139739990234, 0.0951523706316948, -0.42233070731163025, -0.016888976097106934, -1.4525935649871826, 0.03369557857513428};
     
-    tf2_ros::Buffer tfBuffer;
-    tf2_ros::TransformListener tfListener(tfBuffer);
-    ros::Rate loop_rate(50.0);
+    // prova.position.x = -0.105;
+    // prova.position.y = -0.40;
+    // prova.position.z = 0.29; 
+    // prova.orientation.w = Q.w();
+    // prova.orientation.x = Q.x();
+    // prova.orientation.y = Q.y();
+    // prova.orientation.z = Q.z();
+
+    // tf2_ros::Buffer tfBuffer;
+    // tf2_ros::TransformListener tfListener(tfBuffer);
+    // ros::Rate loop_rate(50.0);
 
     // geometry_msgs::TransformStamped transformStamped;
     // try {
@@ -125,41 +153,34 @@ int main(int argc, char *argv[])
     finger_reference.position.x = -0.011;
     finger_reference.position.y = -0.005;
     finger_reference.position.z = 0.005;
-    finger_reference.orientation.x = 0;
-    finger_reference.orientation.y = 0;
-    finger_reference.orientation.z = 0;
-    finger_reference.orientation.w = 1;
+    Eigen::Quaterniond quat(1,0,0,0);
+    quat.normalize();
+    finger_reference.orientation.w = quat.w();
+    finger_reference.orientation.x = quat.x();
+    finger_reference.orientation.y = quat.y();
+    finger_reference.orientation.z = quat.z();
 
     end_effector.position.x = 0.025;
     end_effector.position.y = 0.065;
     end_effector.position.z = 0.041;
-    end_effector.orientation.x = -2.25214e-06;
-    end_effector.orientation.y = 2.25214e-06;
-    end_effector.orientation.z = -0.707107;
-    end_effector.orientation.w = 0.707107;
+    Eigen::Quaterniond Quat(0.707107, -2.25214e-06, 2.25214e-06, -0.707107);
+    Quat.normalize();
+    end_effector.orientation.x = Quat.x();
+    end_effector.orientation.y = Quat.y();
+    end_effector.orientation.z = Quat.z();
+    end_effector.orientation.w = Quat.w();
     robot.clik_.set_end_effector(end_effector);
-
-    // const std::vector<double> q_prova = {-1.0704755783081055, -0.029570896178483963, 6.075171404518187e-05, 0.007168701849877834, 0.13821014761924744, -1.4003348350524902, -0.501169741153717};
-    // geometry_msgs::Pose posa_prova;
-    // posa_prova.position.x = -0.014717276657990823;
-    // posa_prova.position.y = -0.2841906460355032;
-    // posa_prova.position.z = 0.5082888797159557;
-    // posa_prova.orientation.w = 0.09514138758157703;
-    // posa_prova.orientation.x = 0.7039539231400336;   
-    // posa_prova.orientation.y = -0.6993228990206886;
-    // posa_prova.orientation.z = 0.07965220254398343;
-
-    // // POSE DI PROVA IRL
-    // if(askContinue("PROVA REALE")) {
-    //     robot.goTo(q_prova, ros::Duration(15.0));
-    //     ROS_INFO_STREAM("Posa in spazio dei giunti raggiunta");
-    // }
-
-    // if(askContinue("PROVA REALE")) {
-    //     robot.goTo(posa_prova, ros::Duration(15.0));
-    //     ROS_INFO_STREAM("Posa in cartesiano raggiunta");
-    // }
     
+    ros::Rate loop_rate(30.0);
+
+    // if(askContinue("Avvio?")) {}
+    // for(int i = 0; i < 20; i++) {
+    //     robot.goTo(start, ros::Duration(15.0));
+    //     //sleep(1);
+    //     robot.goTo(prova, ros::Duration(15.0));
+    //     //sleep(1);
+    //     loop_rate.sleep();
+    // }
 
     if(askContinue("Home")) {
         robot.goTo(q0, ros::Duration(10.0));
@@ -236,7 +257,7 @@ int main(int argc, char *argv[])
     sensor_msgs::PointCloud centroide;
     cluster.header.frame_id = "base_link";
     centroide.header.frame_id = "base_link";
-    double z, z0 = 0.27, deltaz = -0.0090;
+    double z, z0 = 0.269, deltaz = -0.0040;
     int contatore = 0, val = 3;
 
     if(askContinue("Avviare l'esplorazione?")) {
@@ -246,13 +267,15 @@ int main(int argc, char *argv[])
                 z = z0;
                 posa = grid.poses[i];
                 posa.position.z = z;
-                while(ros::ok() && z > 0.24 && touched == false)
+                while(ros::ok() && z > 0.25 && touched == false)
                 {   
-                    /*if(askContinue("posa"))*/ { robot.goTo(posa, ros::Duration(5.0)); ROS_INFO_STREAM("Posa raggiunta"); }
+                    robot.goTo(posa, ros::Duration(7.0)); ROS_INFO_STREAM("Posa raggiunta");
+                    ros::spinOnce();
+                    /*if(askContinue("posa"))*/
                     z = z + deltaz;
                     posa.position.z = z;
                     std::cout << z << std::endl;
-                    ros::spinOnce();
+                    //ros::spinOnce();
                     if(touched) {
 
                         std::cout << posa.position;
@@ -335,14 +358,16 @@ int main(int argc, char *argv[])
                         pcl_centr_pub.publish(centroide);
 
                     }
-                }
+                    loop_rate.sleep();
+                }   
                 int dim = PCL.size();
                 std::cout << PCL.size() << std::endl;
-
+                posa.position.z = posa.position.z - 5*deltaz;
+                robot.goTo(posa, ros::Duration(8.0));
             //}
             //else { break; }
-
-        }
+                //loop_rate.sleep();
+        }   
     }
     return 0;
 }
