@@ -6,7 +6,6 @@
 #include "yaskawa_cross_modal/grid.h"
 #include "sun_tactile_common/TactileStamped.h"
 #include <sensor_msgs/PointCloud.h>
-#include <sensor_msgs/PointCloud2.h>
 #include <Eigen/Dense>
 
 bool touched = false;
@@ -74,14 +73,14 @@ void fkine_cb(const geometry_msgs::PoseStampedPtr &msg) {
     base_finger.pose.orientation.z = q.z();
     
 }
-int count = 0;
-void motoman_cb(const sensor_msgs::JointStatePtr &msg) {
+// int count = 0;
+// void motoman_cb(const sensor_msgs::JointStatePtr &msg) {
 
-    std::cout << "####### CALLBACK LELLO #########" << std::endl;
-    count++;
-    std::cout << count << std::endl;
+//     std::cout << "####### CALLBACK LELLO #########" << std::endl;
+//     count++;
+//     std::cout << count << std::endl;
     
-}
+// }
 
 int main(int argc, char *argv[])
 {
@@ -96,7 +95,7 @@ int main(int argc, char *argv[])
     ros::Publisher pcl_centr_pub = nh.advertise<sensor_msgs::PointCloud>("/pcl2",1);
     ros::Subscriber sub_volt = nh.subscribe("/tactile_voltage", 1, tact_cb);
     ros::Subscriber sub_fkine = nh.subscribe("/motoman/clik/fkine", 1, fkine_cb);
-    ros::Subscriber sub_motoman = nh.subscribe("/motoman/joint_states", 1, motoman_cb);
+    //ros::Subscriber sub_motoman = nh.subscribe("/motoman/joint_states", 1, motoman_cb);
     geometry_msgs::PoseArray grid;
     ros::ServiceClient grid_client = nh.serviceClient<yaskawa_cross_modal::grid>("grid_srv");
     yaskawa_cross_modal::grid srv;

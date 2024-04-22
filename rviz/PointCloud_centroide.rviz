@@ -6,7 +6,6 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /TF1
         - /TF1/Frames1
         - /PoseArray1
         - /PointCloud1
@@ -288,7 +287,7 @@ Visualization Manager:
       Queue Size: 10
       Selectable: true
       Size (Pixels): 3
-      Size (m): 0.009999999776482582
+      Size (m): 0.0020000000949949026
       Style: Spheres
       Topic: /pcl2
       Unreliable: false
@@ -323,7 +322,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.953160285949707
+      Distance: 3.343716859817505
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -331,17 +330,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -0.017338827252388
-        Y: 0.013327164575457573
-        Z: 0.07720979303121567
+        X: -0.08173537254333496
+        Y: -0.38056591153144836
+        Z: 0.1869494616985321
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.3103986084461212
+      Pitch: 0.435398668050766
       Target Frame: <Fixed Frame>
-      Yaw: 3.7235820293426514
+      Yaw: 3.54358172416687
     Saved: ~
 Window Geometry:
   Displays:

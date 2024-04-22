@@ -24,6 +24,7 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 find_package(Eigen3 REQUIRED)
+find_package(rosbag REQUIRED)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -201,6 +202,12 @@ target_link_libraries(joint_state ${catkin_LIBRARIES})
 add_executable(grid_srv src/grid_srv.cpp)
 add_dependencies(grid_srv ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(grid_srv ${catkin_LIBRARIES})
+
+include_directories(${rosbag_INCLUDE_DIRS})
+add_executable(visualize_pcl src/visualize_pcl.cpp)
+add_dependencies(visualize_pcl ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(visualize_pcl ${catkin_LIBRARIES})
+target_link_libraries(visualize_pcl ${rosbag_LIBRARIES})
 
 #############
 ## Install ##

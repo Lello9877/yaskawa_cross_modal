@@ -7,6 +7,7 @@
   <!-- <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher"/> -->
   <node name="joint_state" pkg="yaskawa_cross_modal" type="joint_state"/>
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
+  <!-- <node name="visualize_pcl" pkg="yaskawa_cross_modal" type="visualize_pcl"/> -->
   <node name="rviz" pkg="rviz" args="-d $(arg rvizconfig)" type="rviz" required="true"/>
   <!-- <node name="rviz" pkg="rviz" type="rviz" required="true"/> -->
 </launch>
