@@ -262,112 +262,112 @@ int main(int argc, char *argv[])
 
     if(askContinue("Avviare l'esplorazione?")) {
         for(int i = 0; i < grid.poses.size(); i++) {
-            //if(askContinue("Prossima posa di posaazione")) {
-                touched = false;
-                z = z0;
-                posa = grid.poses[i];
+            touched = false;
+            z = z0;
+            posa = grid.poses[i];
+            posa.position.z = z;
+            while(ros::ok() && z > 0.25 && touched == false)
+            {   
+                robot.goTo(posa, ros::Duration(7.0)); ROS_INFO_STREAM("Posa raggiunta");
+                /*if(askContinue("posa"))*/
+                z = z + deltaz;
                 posa.position.z = z;
-                while(ros::ok() && z > 0.25 && touched == false)
-                {   
-                    robot.goTo(posa, ros::Duration(7.0)); ROS_INFO_STREAM("Posa raggiunta");
-                    ros::spinOnce();
-                    /*if(askContinue("posa"))*/
-                    z = z + deltaz;
-                    posa.position.z = z;
-                    std::cout << z << std::endl;
-                    //ros::spinOnce();
-                    if(touched) {
+                std::cout << z << std::endl;
+                ros::spinOnce();
+                if(touched) {
 
-                        std::cout << posa.position;
-                        // geometry_msgs::TransformStamped tf_b_s;
-                        // try {
-                        //     tf_b_s = tfBuffer.lookupTransform("base_link", "reference_taxel", ros::Time(0), ros::Duration(3.0)); 
-                        // }
-                        // catch (tf2::TransformException &ex) {
-                        //     ROS_WARN("%s",ex.what());
-                        //     ros::Duration(1.0).sleep();
-                        // }
-                        
-                        // Estrapolo l'origine della terna sensore di riferimento per le celle, rispetto alla terna base
+                    std::cout << posa.position;
+                    // geometry_msgs::TransformStamped tf_b_s;
+                    // try {
+                    //     tf_b_s = tfBuffer.lookupTransform("base_link", "reference_taxel", ros::Time(0), ros::Duration(3.0)); 
+                    // }
+                    // catch (tf2::TransformException &ex) {
+                    //     ROS_WARN("%s",ex.what());
+                    //     ros::Duration(1.0).sleep();
+                    // }
+                    
+                    // Estrapolo l'origine della terna sensore di riferimento per le celle, rispetto alla terna base
 
-                        Eigen::Matrix4d T_base_reference, T_base_finger, T_finger_reference;
+                    Eigen::Matrix4d T_base_reference, T_base_finger, T_finger_reference;
 
-                        Eigen::Quaterniond q_finger_reference(finger_reference.orientation.w,finger_reference.orientation.x,finger_reference.orientation.y,finger_reference.orientation.z);
-                        q_finger_reference.normalize();
-                        Eigen::Vector3d p_finger_reference(finger_reference.position.x, finger_reference.position.y, finger_reference.position.z);
-                        Eigen::Matrix3d R_finger_reference = q_finger_reference.toRotationMatrix();
-                        Eigen::Quaterniond q_base_finger(base_finger.pose.orientation.w,base_finger.pose.orientation.x,base_finger.pose.orientation.y,base_finger.pose.orientation.z);
-                        q_base_finger.normalize();
-                        Eigen::Vector3d p_base_finger(base_finger.pose.position.x, base_finger.pose.position.y, base_finger.pose.position.z);
-                        Eigen::Matrix3d R_base_finger = q_base_finger.toRotationMatrix();
+                    Eigen::Quaterniond q_finger_reference(finger_reference.orientation.w,finger_reference.orientation.x,finger_reference.orientation.y,finger_reference.orientation.z);
+                    q_finger_reference.normalize();
+                    Eigen::Vector3d p_finger_reference(finger_reference.position.x, finger_reference.position.y, finger_reference.position.z);
+                    Eigen::Matrix3d R_finger_reference = q_finger_reference.toRotationMatrix();
+                    Eigen::Quaterniond q_base_finger(base_finger.pose.orientation.w,base_finger.pose.orientation.x,base_finger.pose.orientation.y,base_finger.pose.orientation.z);
+                    q_base_finger.normalize();
+                    Eigen::Vector3d p_base_finger(base_finger.pose.position.x, base_finger.pose.position.y, base_finger.pose.position.z);
+                    Eigen::Matrix3d R_base_finger = q_base_finger.toRotationMatrix();
 
-                        //std::cout << "p_base_finger: " << p_base_finger << std::endl << "p_finger_reference: " << p_finger_reference << std::endl;
+                    //std::cout << "p_base_finger: " << p_base_finger << std::endl << "p_finger_reference: " << p_finger_reference << std::endl;
 
-                        Eigen::Vector3d o_b_s = p_base_finger + p_finger_reference;
-                        Eigen::Matrix3d R_b_s = R_base_finger*R_finger_reference;
+                    Eigen::Vector3d o_b_s = p_base_finger + p_finger_reference;
+                    Eigen::Matrix3d R_b_s = R_base_finger*R_finger_reference;
 
-                        std::vector<geometry_msgs::Point32> pcl;
-                        pcl.resize(tensione.tactile.data.size());
+                    std::vector<geometry_msgs::Point32> pcl;
+                    pcl.resize(tensione.tactile.data.size());
 
-                        //Eigen::Vector3d p_si_temp[dim];
+                    //Eigen::Vector3d p_si_temp[dim];
 
-                        for(int i = 0; i < tensione.tactile.data.size(); i++)
-                            p_si[i].z() = -k[i]*tensione.tactile.data[i];
+                    for(int i = 0; i < tensione.tactile.data.size(); i++)
+                        p_si[i].z() = -k[i]*tensione.tactile.data[i];
 
-                        // Calcolo i punti da inserire nelle point cloud delle celle e del centroide
+                    // Calcolo i punti da inserire nelle point cloud delle celle e del centroide
 
-                        // Costruzione della point cloud della cella
-                        Eigen::Vector3d p_b_s, p_b_s_centr;
-                        float sumx = 0, sumy = 0, sumv = 0;
-                        for(int i = 0; i < tensione.tactile.data.size(); i++) {
-                            p_b_s = o_b_s + R_b_s*p_si[i];
-                            pcl.at(i).x = p_b_s.x();
-                            pcl.at(i).y = p_b_s.y();
-                            pcl.at(i).z = p_b_s.z();
-                            PCL.push_back(pcl.at(i));
-                        }
- 
-                        for(int i = 0; i < tensione.tactile.data.size(); i++) {
-                            cluster.points.push_back(PCL.at(contatore));
-                            contatore++;
-                        }
-
-                        cluster.header.stamp = ros::Time::now();
-                        pcl_pub.publish(cluster); 
-
-                        // Calcolo numeratore e denominatore della formula del centroide
-                        for(int i = 0; i < tensione.tactile.data.size(); i++) {
-                            sumv = sumv + tensione.tactile.data[i];
-                            sumx = sumx + p_si[i].x()*tensione.tactile.data[i];
-                            sumy = sumy + p_si[i].y()*tensione.tactile.data[i];
-                        }
-
-                        // Costruzione della point cloud dei centroidi
-                        geometry_msgs::Point32 punto;
-                        punto.x = sumx/sumv;
-                        punto.y = sumy/sumv;
-                        punto.z = 0;
-                        std::cout << punto << std::endl;
-                        Eigen::Vector3d point(punto.x,punto.y,punto.z);
-                        p_b_s_centr = o_b_s + R_b_s*point;
-                        punto.x = p_b_s_centr.x();
-                        punto.y = p_b_s_centr.y();
-                        punto.z = p_b_s_centr.z();
-                        centroide.points.push_back(punto);
-                        centroide.header.stamp = ros::Time::now();
-                        pcl_centr_pub.publish(centroide);
-
+                    // Costruzione della point cloud della cella
+                    Eigen::Vector3d p_b_s, p_b_s_centr;
+                    float sumx = 0, sumy = 0, sumv = 0;
+                    for(int i = 0; i < tensione.tactile.data.size(); i++) {
+                        p_b_s = o_b_s + R_b_s*p_si[i];
+                        pcl.at(i).x = p_b_s.x();
+                        pcl.at(i).y = p_b_s.y();
+                        pcl.at(i).z = p_b_s.z();
+                        PCL.push_back(pcl.at(i));
                     }
-                    loop_rate.sleep();
-                }   
-                int dim = PCL.size();
-                std::cout << PCL.size() << std::endl;
-                posa.position.z = posa.position.z - 5*deltaz;
-                robot.goTo(posa, ros::Duration(8.0));
-            //}
-            //else { break; }
-                //loop_rate.sleep();
-        }   
-    }
+
+                    for(int i = 0; i < tensione.tactile.data.size(); i++) {
+                        cluster.points.push_back(PCL.at(contatore));
+                        contatore++;
+                    }
+
+                    cluster.header.stamp = ros::Time::now();
+                    pcl_pub.publish(cluster); 
+
+                    // Calcolo numeratore e denominatore della formula del centroide
+                    for(int i = 0; i < tensione.tactile.data.size(); i++) {
+                        sumv = sumv + tensione.tactile.data[i];
+                        sumx = sumx + p_si[i].x()*tensione.tactile.data[i];
+                        sumy = sumy + p_si[i].y()*tensione.tactile.data[i];
+                    }
+
+                    // Costruzione della point cloud dei centroidi
+                    geometry_msgs::Point32 punto;
+                    punto.x = sumx/sumv;
+                    punto.y = sumy/sumv;
+                    punto.z = 0;
+                    std::cout << punto << std::endl;
+                    Eigen::Vector3d point(punto.x,punto.y,punto.z);
+                    p_b_s_centr = o_b_s + R_b_s*point;
+                    punto.x = p_b_s_centr.x();
+                    punto.y = p_b_s_centr.y();
+                    punto.z = p_b_s_centr.z();
+                    centroide.points.push_back(punto);
+                    centroide.header.stamp = ros::Time::now();
+                    pcl_centr_pub.publish(centroide);
+
+                } // fine dell'if del tocco
+
+                loop_rate.sleep();
+
+            }  // fine del while interno 
+
+            int dim = PCL.size();
+            std::cout << PCL.size() << std::endl;
+            posa.position.z = posa.position.z - 5*deltaz;
+            robot.goTo(posa, ros::Duration(8.0));
+            //loop_rate.sleep();
+
+        }   // fine del for esterno
+    } // fine esplorazione
     return 0;
 }
