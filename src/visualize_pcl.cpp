@@ -21,14 +21,12 @@ void read_from_bag_and_send(ros::Publisher pub1, ros::Publisher pub2) {
         if(pcl != NULL) {
             sensor_msgs::PointCloud PCL = *pcl;
             PCL.header.stamp = ros::Time::now();
-            //std::cout << PCL << std::endl;
             pub1.publish(PCL);
         }
         
     }
 
     bag_grid.close();
-
 
     bag_point.open("/home/workstation2/ws_cross_modal/PCL_centroide.bag", rosbag::bagmode::Read);
     rosbag::View view2(bag_point, rosbag::TopicQuery(topics.at(1)));
@@ -39,7 +37,6 @@ void read_from_bag_and_send(ros::Publisher pub1, ros::Publisher pub2) {
         if(pcl2 != NULL) {
             sensor_msgs::PointCloud PCL2 = *pcl2;
             PCL2.header.stamp = ros::Time::now();
-            //std::cout << PCL2 << std::endl;
             pub2.publish(PCL2);
         }
     }
@@ -59,7 +56,6 @@ int main(int argc, char** argv)
     while(ros::ok() && count < 20)
     {
         read_from_bag_and_send(pub1,pub2);
-        //std::cout << "Point Cloud pubblicate" << std::endl;
         count++;
         ros::spinOnce();
         loop_rate.sleep();

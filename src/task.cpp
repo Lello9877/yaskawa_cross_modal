@@ -8,6 +8,7 @@
 #include <sensor_msgs/PointCloud.h>
 #include <Eigen/Dense>
 
+// Variabili globali per gestire il tocco del sensore, le tensioni e la posa in cui avviene il tocco
 bool touched = false;
 sun_tactile_common::TactileStamped tensione;
 geometry_msgs::PoseStamped base_finger;
@@ -18,34 +19,17 @@ bool askContinue(const std::string &prompt = "")
     std::cout << prompt << " - Press y to continue [s to skip]: ";
     std::cin >> ans;
 
-    if (ans == 'y' || ans == 'Y')
-    {
-        return true;
-    }
-
-    if (ans == 's' || ans == 'S')
-    {
-        return false;
-    }
+    if (ans == 'y' || ans == 'Y') return true;
+    else if (ans == 's' || ans == 'S') return false;
+    else return false;
 
     throw std::runtime_error("USER STOP!");
 }
 
-//   frame_id: "base_link"
-// pose: 
-//   position: 
-//     x: -0.09119281341776284
-//     y: -0.4156545801347097
-//     z: 0.4055245465651918
-//   orientation: 
-//     x: -0.7049844410348428
-//     y: -0.7057399092223299
-//     z: -0.0436656630546204
-//     w: 0.05496752040658338
-
-
+// Callback per prelevare il valore delle tensioni
 void tact_cb(const sun_tactile_common::TactileStampedPtr &msg) {
 
+    // Somma delle tensioni senza contatto: 13.91, 13.85
     double sum = 0, treshold = 13.99;
     double v_min[msg->tactile.data.size()] = {1, 1.04, 1, 1.06, 1, 0.95, 3.02, 0.90, 0.96, 1, 1.11, 0.86};
 
@@ -59,9 +43,9 @@ void tact_cb(const sun_tactile_common::TactileStampedPtr &msg) {
     if(sum <= treshold) touched = false; 
     else touched = true;
 
-    // Somma delle tensioni senza contatto: 13.91, 13.85
 }
 
+// Callback per prelevare la posa dell'end effector
 void fkine_cb(const geometry_msgs::PoseStampedPtr &msg) {
     
     base_finger = *msg;
@@ -73,17 +57,10 @@ void fkine_cb(const geometry_msgs::PoseStampedPtr &msg) {
     base_finger.pose.orientation.z = q.z();
     
 }
-// int count = 0;
-// void motoman_cb(const sensor_msgs::JointStatePtr &msg) {
-
-//     std::cout << "####### CALLBACK LELLO #########" << std::endl;
-//     count++;
-//     std::cout << count << std::endl;
-    
-// }
 
 int main(int argc, char *argv[])
 {
+    // Inizializzazione del nodo e dell'oggetto robot su cui chiamare goTo in giunti o cartesiano
     ros::init(argc,argv,"task");
     ros::NodeHandle nh;
     sun::RobotMotionClient robot(ros::NodeHandle(nh, "motoman"));
@@ -91,16 +68,16 @@ int main(int argc, char *argv[])
 
     // Definizione dei publisher, subscriber, servizio di creazione griglia
     geometry_msgs::Pose start, end_effector, finger_reference;
+    geometry_msgs::PoseArray grid;
     ros::Publisher pcl_pub = nh.advertise<sensor_msgs::PointCloud>("/pcl",1);
     ros::Publisher pcl_centr_pub = nh.advertise<sensor_msgs::PointCloud>("/pcl2",1);
     ros::Subscriber sub_volt = nh.subscribe("/tactile_voltage", 1, tact_cb);
     ros::Subscriber sub_fkine = nh.subscribe("/motoman/clik/fkine", 1, fkine_cb);
-    //ros::Subscriber sub_motoman = nh.subscribe("/motoman/joint_states", 1, motoman_cb);
-    geometry_msgs::PoseArray grid;
     ros::ServiceClient grid_client = nh.serviceClient<yaskawa_cross_modal::grid>("grid_srv");
     yaskawa_cross_modal::grid srv;
-    geometry_msgs::Pose prova;
     Eigen::Quaterniond Q(0, 0.7071, 0.7071, 0);
+
+    // Posa di partenza, arrivando dalla posa di Home q0
     Q.normalize();
     start.position.x = -0.195;
     start.position.y = -0.40;
@@ -110,14 +87,6 @@ int main(int argc, char *argv[])
     start.orientation.y = Q.y();
     start.orientation.z = Q.z();
     const std::vector<double> q0 = {-1.6097532510757446, -0.34197139739990234, 0.0951523706316948, -0.42233070731163025, -0.016888976097106934, -1.4525935649871826, 0.03369557857513428};
-    
-    // prova.position.x = -0.105;
-    // prova.position.y = -0.40;
-    // prova.position.z = 0.29; 
-    // prova.orientation.w = Q.w();
-    // prova.orientation.x = Q.x();
-    // prova.orientation.y = Q.y();
-    // prova.orientation.z = Q.z();
 
     // tf2_ros::Buffer tfBuffer;
     // tf2_ros::TransformListener tfListener(tfBuffer);
@@ -149,6 +118,7 @@ int main(int argc, char *argv[])
     // end_effector.position.y = transformStamped.transform.translation.y;
     // end_effector.position.z = transformStamped.transform.translation.z;
 
+    // Posa del pad del sensore in terna finger
     finger_reference.position.x = -0.011;
     finger_reference.position.y = -0.005;
     finger_reference.position.z = 0.005;
@@ -159,6 +129,7 @@ int main(int argc, char *argv[])
     finger_reference.orientation.y = quat.y();
     finger_reference.orientation.z = quat.z();
 
+    // Posa per settare l'end effector, ottenuta dalla trasformata tra tool0 e finger
     end_effector.position.x = 0.025;
     end_effector.position.y = 0.065;
     end_effector.position.z = 0.041;
@@ -183,16 +154,15 @@ int main(int argc, char *argv[])
 
     if(askContinue("Home")) {
         robot.goTo(q0, ros::Duration(10.0));
-        ROS_INFO_STREAM("Posa in spazio dei giunti raggiunta");
+        ROS_INFO_STREAM("Posa di Home raggiunta");
     }
 
     if(askContinue("Posizione utile")) {
         robot.goTo(start, ros::Duration(20.0));
-        ROS_INFO_STREAM("Posa in cartesiano raggiunta");
+        ROS_INFO_STREAM("Posa di partenza raggiunta");
     }
 
     // Creazione della griglia tramite il servizio
-
     srv.request.w = start.orientation.w;
     srv.request.x = start.orientation.x;
     srv.request.y = start.orientation.y;
@@ -208,12 +178,10 @@ int main(int argc, char *argv[])
     else { ROS_INFO("Errore nella generazione della griglia"); }
 
     // Calcolo dei coefficienti k per ogni cella
-
     int dim = 12;
     int rows = 6;
     int cols = 2;
     double k[dim];
-
     {
         double h_min = -0.008, h_max = -0.006;
         double h = h_max - h_min;
@@ -225,13 +193,13 @@ int main(int argc, char *argv[])
             //std::cout << k[i] << std::endl;
     }
 
-    // Generazione delle coordinate (xi,yi) in terna sensore (reference_taxel)
+    // Generazione delle coordinate (xi,yi) in terna reference_taxel
 
     Eigen::Vector3d p_si[dim];
     {
-        double refx = 0;
-        double refy;
         int count = 0;
+        double refx = 0;
+        double refy = 0;
         double offset = 0.0035;
 
         for(int j = 0; j < rows; j++) {
@@ -244,8 +212,6 @@ int main(int argc, char *argv[])
             }
             refx = refx + offset;
         }  
-        //for(int i = 0; i < tensione.tactile.data.size(); i++)
-                //std::cout << p_si[i] << std::endl;
     }
 
     // Inizio esplorazione
@@ -257,7 +223,7 @@ int main(int argc, char *argv[])
     cluster.header.frame_id = "base_link";
     centroide.header.frame_id = "base_link";
     double z, z0 = 0.269, deltaz = -0.0040;
-    int contatore = 0, val = 3;
+    int contatore = 0;
 
     if(askContinue("Avviare l'esplorazione?")) {
         for(int i = 0; i < grid.poses.size(); i++) {
@@ -275,7 +241,6 @@ int main(int argc, char *argv[])
                 ros::spinOnce();
                 if(touched) {
 
-                    std::cout << posa.position;
                     // geometry_msgs::TransformStamped tf_b_s;
                     // try {
                     //     tf_b_s = tfBuffer.lookupTransform("base_link", "reference_taxel", ros::Time(0), ros::Duration(3.0)); 
@@ -286,33 +251,27 @@ int main(int argc, char *argv[])
                     // }
                     
                     // Estrapolo l'origine della terna sensore di riferimento per le celle, rispetto alla terna base
-
+                    std::cout << posa.position;
                     Eigen::Matrix4d T_base_reference, T_base_finger, T_finger_reference;
-
-                    Eigen::Quaterniond q_finger_reference(finger_reference.orientation.w,finger_reference.orientation.x,finger_reference.orientation.y,finger_reference.orientation.z);
+                    Eigen::Quaterniond q_finger_reference(finger_reference.orientation.w, finger_reference.orientation.x, finger_reference.orientation.y, finger_reference.orientation.z);
                     q_finger_reference.normalize();
                     Eigen::Vector3d p_finger_reference(finger_reference.position.x, finger_reference.position.y, finger_reference.position.z);
                     Eigen::Matrix3d R_finger_reference = q_finger_reference.toRotationMatrix();
-                    Eigen::Quaterniond q_base_finger(base_finger.pose.orientation.w,base_finger.pose.orientation.x,base_finger.pose.orientation.y,base_finger.pose.orientation.z);
+                    Eigen::Quaterniond q_base_finger(base_finger.pose.orientation.w, base_finger.pose.orientation.x, base_finger.pose.orientation.y, base_finger.pose.orientation.z);
                     q_base_finger.normalize();
                     Eigen::Vector3d p_base_finger(base_finger.pose.position.x, base_finger.pose.position.y, base_finger.pose.position.z);
                     Eigen::Matrix3d R_base_finger = q_base_finger.toRotationMatrix();
-
-                    //std::cout << "p_base_finger: " << p_base_finger << std::endl << "p_finger_reference: " << p_finger_reference << std::endl;
-
                     Eigen::Vector3d o_b_s = p_base_finger + p_finger_reference;
-                    Eigen::Matrix3d R_b_s = R_base_finger*R_finger_reference;
+                    Eigen::Matrix3d R_b_s = R_base_finger * R_finger_reference;
 
                     std::vector<geometry_msgs::Point32> pcl;
                     pcl.resize(tensione.tactile.data.size());
 
-                    //Eigen::Vector3d p_si_temp[dim];
-
+                    // Calcolo delle quote z delle celle del sensore
                     for(int i = 0; i < tensione.tactile.data.size(); i++)
                         p_si[i].z() = -k[i]*tensione.tactile.data[i];
 
                     // Calcolo i punti da inserire nelle point cloud delle celle e del centroide
-
                     // Costruzione della point cloud della cella
                     Eigen::Vector3d p_b_s, p_b_s_centr;
                     float sumx = 0, sumy = 0, sumv = 0;
@@ -364,7 +323,6 @@ int main(int argc, char *argv[])
             std::cout << PCL.size() << std::endl;
             posa.position.z = posa.position.z - 5*deltaz;
             robot.goTo(posa, ros::Duration(8.0));
-            //loop_rate.sleep();
 
         }   // fine del for esterno
     } // fine esplorazione
