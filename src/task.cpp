@@ -190,7 +190,6 @@ int main(int argc, char *argv[])
 
         for(int i = 0; i < dim; i++)
             k[i] = h/(v_max[i]-v_min[i]);
-            //std::cout << k[i] << std::endl;
     }
 
     // Generazione delle coordinate (xi,yi) in terna reference_taxel
