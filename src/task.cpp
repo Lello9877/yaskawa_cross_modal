@@ -75,18 +75,24 @@ int main(int argc, char *argv[])
     ros::Subscriber sub_fkine = nh.subscribe("/motoman/clik/fkine", 1, fkine_cb);
     ros::ServiceClient grid_client = nh.serviceClient<yaskawa_cross_modal::grid>("grid_srv");
     yaskawa_cross_modal::grid srv;
-    Eigen::Quaterniond Q(0, 0.7071, 0.7071, 0);
-
+    
     // Posa di partenza, arrivando dalla posa di Home q0
+    Eigen::Quaterniond Q(0, 0.7071, 0.7071, 0);
     Q.normalize();
-    start.position.x = -0.195;
-    start.position.y = -0.40;
+    start.position.x = -0.24;
+    start.position.y = -0.25;
     start.position.z = 0.29; 
     start.orientation.w = Q.w();
     start.orientation.x = Q.x();
     start.orientation.y = Q.y();
     start.orientation.z = Q.z();
     const std::vector<double> q0 = {-1.6097532510757446, -0.34197139739990234, 0.0951523706316948, -0.42233070731163025, -0.016888976097106934, -1.4525935649871826, 0.03369557857513428};
+
+    int divx = 15;
+    int divy = 8;
+    double quota = 0;
+    double xf = 0.24;
+    double yf = -0.55;
 
     // tf2_ros::Buffer tfBuffer;
     // tf2_ros::TransformListener tfListener(tfBuffer);
@@ -140,6 +146,9 @@ int main(int argc, char *argv[])
     end_effector.orientation.z = Quat.z();
     end_effector.orientation.w = Quat.w();
     robot.clik_.set_end_effector(end_effector);
+    // geometry_msgs::Pose in, out;
+    // std::string out_frame_id = "base_link";
+    // robot.clik_.toRobotBaseFrame(in, out, out_frame_id);
     
     ros::Rate loop_rate(30.0);
 
@@ -167,13 +176,13 @@ int main(int argc, char *argv[])
     srv.request.x = start.orientation.x;
     srv.request.y = start.orientation.y;
     srv.request.z = start.orientation.z;
-    srv.request.quota = 0;
-    srv.request.x0 = -0.195;
-    srv.request.xf = 0.195;
-    srv.request.y0 = -0.40;
-    srv.request.yf = -0.55;
-    srv.request.divx = 15;
-    srv.request.divy = 3;
+    srv.request.quota = quota;
+    srv.request.x0 = start.position.x;
+    srv.request.xf = xf;
+    srv.request.y0 = start.position.y;
+    srv.request.yf = yf;
+    srv.request.divx = divx;
+    srv.request.divy = divy;
     if(grid_client.call(srv)) { grid = srv.response.grid; ROS_INFO("Griglia ottenuta"); }
     else { ROS_INFO("Errore nella generazione della griglia"); }
 
@@ -232,7 +241,7 @@ int main(int argc, char *argv[])
             posa.position.z = z;
             while(ros::ok() && z > 0.25 && touched == false)
             {   
-                robot.goTo(posa, ros::Duration(7.0)); ROS_INFO_STREAM("Posa raggiunta");
+                robot.goTo(posa, ros::Duration(6.0)); ROS_INFO_STREAM("Posa raggiunta");
                 /*if(askContinue("posa"))*/
                 z = z + deltaz;
                 posa.position.z = z;
@@ -304,7 +313,7 @@ int main(int argc, char *argv[])
                     punto.z = 0;
                     std::cout << punto << std::endl;
                     Eigen::Vector3d point(punto.x,punto.y,punto.z);
-                    p_b_s_centr = o_b_s + R_b_s*point;
+                    p_b_s_centr = o_b_s + R_b_s * point;
                     punto.x = p_b_s_centr.x();
                     punto.y = p_b_s_centr.y();
                     punto.z = p_b_s_centr.z();
@@ -321,9 +330,9 @@ int main(int argc, char *argv[])
             int dim = PCL.size();
             std::cout << PCL.size() << std::endl;
             posa.position.z = posa.position.z - 5*deltaz;
-            robot.goTo(posa, ros::Duration(8.0));
+            robot.goTo(posa, ros::Duration(3.0));
 
-        }   // fine del for esterno
+        } // fine del for esterno
     } // fine esplorazione
     return 0;
 }

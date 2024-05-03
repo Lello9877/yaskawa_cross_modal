@@ -12,7 +12,7 @@ void read_from_bag_and_send(ros::Publisher pub1, ros::Publisher pub2) {
     topics.push_back(std::string("/pcl"));
     topics.push_back(std::string("/pcl2"));
     
-    bag_grid.open("/home/workstation2/ws_cross_modal/PCL_grid.bag", rosbag::bagmode::Read);
+    bag_grid.open("/home/workstation2/ws_cross_modal/bags/PCL_grid.bag", rosbag::bagmode::Read);
     rosbag::View view(bag_grid, rosbag::TopicQuery(topics.at(0)));
     
     foreach(rosbag::MessageInstance const m, view)
@@ -28,7 +28,7 @@ void read_from_bag_and_send(ros::Publisher pub1, ros::Publisher pub2) {
 
     bag_grid.close();
 
-    bag_point.open("/home/workstation2/ws_cross_modal/PCL_centroide.bag", rosbag::bagmode::Read);
+    bag_point.open("/home/workstation2/ws_cross_modal/bags/PCL_centroide.bag", rosbag::bagmode::Read);
     rosbag::View view2(bag_point, rosbag::TopicQuery(topics.at(1)));
 
     foreach(rosbag::MessageInstance const m, view2)

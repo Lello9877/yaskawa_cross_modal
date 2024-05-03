@@ -6,11 +6,12 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
+        - /TF1
         - /TF1/Frames1
         - /PoseArray1
         - /PointCloud1
         - /PointCloud_21
-      Splitter Ratio: 0.5
+      Splitter Ratio: 0.5411764979362488
     Tree Height: 519
   - Class: rviz/Selection
     Name: Selection
@@ -80,7 +81,55 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
+        camera_accel_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_accel_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
         camera_bottom_screw_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_color_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_color_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_depth_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_depth_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_gyro_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_gyro_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_infra1_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_infra1_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_infra2_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_infra2_optical_frame:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -164,7 +213,31 @@ Visualization Manager:
           Value: false
         blocco_forato:
           Value: false
+        camera_accel_frame:
+          Value: false
+        camera_accel_optical_frame:
+          Value: false
         camera_bottom_screw_frame:
+          Value: false
+        camera_color_frame:
+          Value: false
+        camera_color_optical_frame:
+          Value: false
+        camera_depth_frame:
+          Value: false
+        camera_depth_optical_frame:
+          Value: false
+        camera_gyro_frame:
+          Value: false
+        camera_gyro_optical_frame:
+          Value: false
+        camera_infra1_frame:
+          Value: false
+        camera_infra1_optical_frame:
+          Value: false
+        camera_infra2_frame:
+          Value: false
+        camera_infra2_optical_frame:
           Value: false
         camera_link:
           Value: false
@@ -216,7 +289,24 @@ Visualization Manager:
                                     {}
                             camera_bottom_screw_frame:
                               camera_link:
-                                {}
+                                camera_accel_frame:
+                                  camera_accel_optical_frame:
+                                    {}
+                                camera_color_frame:
+                                  camera_color_optical_frame:
+                                    {}
+                                camera_depth_frame:
+                                  camera_depth_optical_frame:
+                                    {}
+                                camera_gyro_frame:
+                                  camera_gyro_optical_frame:
+                                    {}
+                                camera_infra1_frame:
+                                  camera_infra1_optical_frame:
+                                    {}
+                                camera_infra2_frame:
+                                  camera_infra2_optical_frame:
+                                    {}
                           end_effector_tool0:
                             {}
       Update Interval: 0
@@ -322,7 +412,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 3.343716859817505
+      Distance: 2.9865505695343018
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -330,17 +420,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -0.08173537254333496
-        Y: -0.38056591153144836
-        Z: 0.1869494616985321
+        X: 0.13643179833889008
+        Y: -0.2660170793533325
+        Z: 0.3787764608860016
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.435398668050766
+      Pitch: 0.5703989267349243
       Target Frame: <Fixed Frame>
-      Yaw: 3.54358172416687
+      Yaw: 3.7185914516448975
     Saved: ~
 Window Geometry:
   Displays:
