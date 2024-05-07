@@ -13,37 +13,35 @@
 sensor_msgs::PointCloud2 nuvola;
 geometry_msgs::Pose pose_base_cam;
 
-// void read_from_bag() {
-   
-//     rosbag::Bag bag_point;
-//     std::vector<std::string> topics;
-//     topics.push_back(std::string("/camera/depth/color/points"));
-    
-//     bag_point.open("/home/workstation2/ws_cross_modal/bags/PCL_realsense.bag", rosbag::bagmode::Read);
-//     rosbag::View view(bag_point, rosbag::TopicQuery(topics.at(0)));
-    
-//     foreach(rosbag::MessageInstance const m, view)
-//     {
-//         sensor_msgs::PointCloud2ConstPtr pcl = m.instantiate<sensor_msgs::PointCloud2>();
-//         if(pcl != NULL) {
-//             nuvola = *pcl;
-//             break;
-//         }
-
-//     }
-
-//     bag_point.close();
-
-// }
-
-
+// Callbacks
 void camera_cb(const sensor_msgs::PointCloud2Ptr &msg) { nuvola = *msg; }
 void fkine_cb(const geometry_msgs::PosePtr &msg) { pose_base_cam = *msg; }
+
+// template <typename T>
+// T bag_read(std::string path, std::string topic) {
+
+//     rosbag::Bag bag;
+//     bag.open(path, rosbag::bagmode::Read);
+//     rosbag::View view(bag, rosbag::TopicQuery(topic));
+//     T val;
+
+//     foreach(rosbag::MessageInstance const m, view)
+//     {
+//         boost::shared_ptr<T> pcl = m.instantiate<T>();
+//         if(pcl != NULL) {
+//             val = *pcl;
+//         }
+//     }
+
+//     bag.close();
+//     return val;
+
+// }
 
 int main(int argc, char **argv) 
 {
 
-    ros::init(argc,argv,"task_camera");
+    ros::init(argc, argv, "task_camera");
     ros::NodeHandle nh;
     ros::Subscriber sub_camera = nh.subscribe("/camera/depth/color/points", 1, camera_cb);
     ros::Publisher pub_cloud2 = nh.advertise<sensor_msgs::PointCloud2>("/cloud2_base", 1);
@@ -118,6 +116,7 @@ int main(int argc, char **argv)
 
         sensor_msgs::PointCloud cloud_temp;
         sensor_msgs::PointCloud2 cloud2;
+        //nuvola = bag_read<sensor_msgs::PointCloud2>("/home/workstation2/ws_cross_modal/bags/PCL_visuale.bag", "/camera/depth/color/points");
         sensor_msgs::convertPointCloud2ToPointCloud(nuvola, cloud_temp);
 
         for(int i = 0; i < cloud_temp.points.size(); i++) {

@@ -215,6 +215,12 @@ add_dependencies(visualize_pcl ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPO
 target_link_libraries(visualize_pcl ${catkin_LIBRARIES})
 target_link_libraries(visualize_pcl ${rosbag_LIBRARIES})
 
+include_directories(${rosbag_INCLUDE_DIRS})
+add_executable(processing_pcl src/processing_pcl.cpp)
+add_dependencies(processing_pcl ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(processing_pcl ${catkin_LIBRARIES})
+target_link_libraries(processing_pcl ${rosbag_LIBRARIES})
+
 #############
 ## Install ##
 #############
