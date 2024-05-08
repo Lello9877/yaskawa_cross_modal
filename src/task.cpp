@@ -30,7 +30,7 @@ bool askContinue(const std::string &prompt = "")
 void tact_cb(const sun_tactile_common::TactileStampedPtr &msg) {
 
     // Somma delle tensioni senza contatto: 13.91, 13.85
-    double sum = 0, treshold = 13.97;
+    double sum = 0, treshold = 14.02;
     double v_min[msg->tactile.data.size()] = {1, 1.04, 1, 1.06, 1, 0.95, 3.02, 0.90, 0.96, 1, 1.11, 0.86};
 
     for(int i = 0; i < msg->tactile.data.size(); i++) {
@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
     const std::vector<double> q0 = {-1.6097532510757446, -0.34197139739990234, 0.0951523706316948, -0.42233070731163025, -0.016888976097106934, -1.4525935649871826, 0.03369557857513428};
 
     int divx = 15;
-    int divy = 7;
+    int divy = 8;
     double quota = 0;
     double xf = 0.24;
     double yf = -0.52;
@@ -230,19 +230,29 @@ int main(int argc, char *argv[])
     sensor_msgs::PointCloud centroide;
     cluster.header.frame_id = "base_link";
     centroide.header.frame_id = "base_link";
-    double z, z0 = 0.268, deltaz = -0.0040;
+    double z, z0 = 0.271, deltaz = -0.0040;
     int contatore = 0;
+    int count = 0;
 
     if(askContinue("Avviare l'esplorazione?")) {
         for(int i = 0; i < grid.poses.size(); i++) {
+            count++;
             touched = false;
             z = z0;
             posa = grid.poses[i];
             posa.position.z = z;
-            while(ros::ok() && z > 0.248 && touched == false)
+            while(ros::ok() && z > 0.247 && touched == false)
             {   
-                robot.goTo(posa, ros::Duration(10.0)); ROS_INFO_STREAM("Posa raggiunta");
-                /*if(askContinue("posa"))*/
+                if(count > divy) 
+                {
+                    robot.goTo(posa, ros::Duration(15.0));
+                    count = 1;
+                }
+                else 
+                {
+                    robot.goTo(posa, ros::Duration(4.0)); 
+                    ROS_INFO_STREAM("Posa raggiunta");
+                }
                 z = z + deltaz;
                 posa.position.z = z;
                 std::cout << z << std::endl;
