@@ -99,66 +99,75 @@ int main(int argc, char **argv)
     end_effector.orientation.z = Quat.z();
     end_effector.orientation.w = Quat.w();
     robot.clik_.set_end_effector(end_effector);
-    const std::vector<double> q0 = {-1.6537983417510986, -0.28548747301101685, 0.00021263099915813655, -0.15455235540866852, 0.07981256395578384, -1.3490585088729858, 0.12313445657491684};
+
+    // Configurazioni delle catture
+    // In ordine da come seguono: spirale, cerchio
+    const std::vector<double> q_retta = { -1.6433945894241333, -0.19776201248168945, 4.55637855338864e-05, 0.23550401628017426, 0.0029920218512415886, -1.5813273191452026, -0.006395920179784298 };
+    const std::vector<double> q1 = { -1.6057740449905396, -0.3545166254043579, 0.0, -0.057136986404657364, -0.012833799235522747, -1.4666751623153687, 0.13985225558280945 };
+    const std::vector<double> q_parabola = { -1.6755170822143555, -0.2627359628677368, -0.0002278189203934744, 0.14147554337978363, -0.010236663743853569, -1.5524402856826782, 0.023347707465291023 };
     if(askContinue("Posizione utile"))
-        robot.goTo(q0, ros::Duration(20.0));
+        robot.goTo(q_retta, ros::Duration(20.0));
     ros::spinOnce();
 
     int count = 0;
-    while(ros::ok()) 
+    if(askContinue("Iniziare la cattura della point Cloud?")) 
     {
-        
-        // try {
-        //     transform = tfBuffer.lookupTransform("base_link", "camera_depth_optical_frame", ros::Time(0), ros::Duration(3.0)); 
-        // }
-        // catch (tf2::TransformException &ex) {
-        //     ROS_WARN("%s",ex.what());
-        //     ros::Duration(1.0).sleep();
-        // }
+        while(ros::ok()) 
+        {
+            
+            // try {
+            //     transform = tfBuffer.lookupTransform("base_link", "camera_depth_optical_frame", ros::Time(0), ros::Duration(3.0)); 
+            // }
+            // catch (tf2::TransformException &ex) {
+            //     ROS_WARN("%s",ex.what());
+            //     ros::Duration(1.0).sleep();
+            // }
 
-        //std::cout << transform << std::endl;
+            //std::cout << transform << std::endl;
 
-        // o_base_cam.x() = transform.transform.translation.x;
-        // o_base_cam.y() = transform.transform.translation.y;
-        // o_base_cam.z() = transform.transform.translation.z;
-        // q.w() = transform.transform.rotation.w;
-        // q.x() = transform.transform.rotation.x;
-        // q.y() = transform.transform.rotation.y;
-        // q.z() = transform.transform.rotation.z;
-        // q.normalize();
-        // R_base_cam = q.toRotationMatrix();
-        o_base_cam.x() = pose_base_cam.pose.position.x;
-        o_base_cam.y() = pose_base_cam.pose.position.y;
-        o_base_cam.z() = pose_base_cam.pose.position.z;
-        q.w() = pose_base_cam.pose.orientation.w;
-        q.x() = pose_base_cam.pose.orientation.x;
-        q.y() = pose_base_cam.pose.orientation.y;
-        q.z() = pose_base_cam.pose.orientation.z;
-        q.normalize();
-        R_base_cam = q.toRotationMatrix();
+            // o_base_cam.x() = transform.transform.translation.x;
+            // o_base_cam.y() = transform.transform.translation.y;
+            // o_base_cam.z() = transform.transform.translation.z;
+            // q.w() = transform.transform.rotation.w;
+            // q.x() = transform.transform.rotation.x;
+            // q.y() = transform.transform.rotation.y;
+            // q.z() = transform.transform.rotation.z;
+            // q.normalize();
+            // R_base_cam = q.toRotationMatrix();
+            o_base_cam.x() = pose_base_cam.pose.position.x;
+            o_base_cam.y() = pose_base_cam.pose.position.y;
+            o_base_cam.z() = pose_base_cam.pose.position.z;
+            q.w() = pose_base_cam.pose.orientation.w;
+            q.x() = pose_base_cam.pose.orientation.x;
+            q.y() = pose_base_cam.pose.orientation.y;
+            q.z() = pose_base_cam.pose.orientation.z;
+            q.normalize();
+            R_base_cam = q.toRotationMatrix();
 
-        sensor_msgs::PointCloud cloud_temp;
-        sensor_msgs::PointCloud2 cloud2;
-        //nuvola = bag_read<sensor_msgs::PointCloud2>("/home/workstation2/ws_cross_modal/bags/Prova.bag", "/camera/depth/color/points");
-        sensor_msgs::convertPointCloud2ToPointCloud(nuvola, cloud_temp);
-        for(int i = 0; i < cloud_temp.points.size(); i++) {
-            p_cam_cam.x() = cloud_temp.points.at(i).x;
-            p_cam_cam.y() = cloud_temp.points.at(i).y;
-            p_cam_cam.z() = cloud_temp.points.at(i).z;
-            p_base_cam = o_base_cam + R_base_cam * p_cam_cam;
-            cloud_temp.points.at(i).x = p_base_cam.x();
-            cloud_temp.points.at(i).y = p_base_cam.y();
-            cloud_temp.points.at(i).z = p_base_cam.z();
+            sensor_msgs::PointCloud cloud_temp;
+            sensor_msgs::PointCloud2 cloud2;
+            //nuvola = bag_read<sensor_msgs::PointCloud2>("/home/workstation2/ws_cross_modal/bags/Prova.bag", "/camera/depth/color/points");
+            sensor_msgs::convertPointCloud2ToPointCloud(nuvola, cloud_temp);
+            for(int i = 0; i < cloud_temp.points.size(); i++) {
+                p_cam_cam.x() = cloud_temp.points.at(i).x;
+                p_cam_cam.y() = cloud_temp.points.at(i).y;
+                p_cam_cam.z() = cloud_temp.points.at(i).z;
+                p_base_cam = o_base_cam + R_base_cam * p_cam_cam;
+                cloud_temp.points.at(i).x = p_base_cam.x();
+                cloud_temp.points.at(i).y = p_base_cam.y();
+                cloud_temp.points.at(i).z = p_base_cam.z();
+            }
+
+            sensor_msgs::convertPointCloudToPointCloud2(cloud_temp, cloud2);
+            cloud2.header.frame_id = "base_link";
+            cloud2.header.stamp = ros::Time::now();
+            pub_cloud2.publish(cloud2);
+            count++;
+            ros::spinOnce();
+            loop_rate.sleep();
         }
-
-        sensor_msgs::convertPointCloudToPointCloud2(cloud_temp, cloud2);
-        cloud2.header.frame_id = "base_link";
-        cloud2.header.stamp = ros::Time::now();
-        pub_cloud2.publish(cloud2);
-        count++;
-        ros::spinOnce();
-        loop_rate.sleep();
     }
+    else {}
 
     return 0;
 }

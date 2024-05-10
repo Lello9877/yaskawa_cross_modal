@@ -30,7 +30,7 @@ bool askContinue(const std::string &prompt = "")
 void tact_cb(const sun_tactile_common::TactileStampedPtr &msg) {
 
     // Somma delle tensioni senza contatto: 13.91, 13.85
-    double sum = 0, treshold = 14.02;
+    double sum = 0, treshold = 13.99;
     double v_min[msg->tactile.data.size()] = {1, 1.04, 1, 1.06, 1, 0.95, 3.02, 0.90, 0.96, 1, 1.11, 0.86};
 
     for(int i = 0; i < msg->tactile.data.size(); i++) {
@@ -79,8 +79,8 @@ int main(int argc, char *argv[])
     // Posa di partenza, arrivando dalla posa di Home q0
     Eigen::Quaterniond Q(0, 0.7071, 0.7071, 0);
     Q.normalize();
-    start.position.x = -0.24;
-    start.position.y = -0.25;
+    start.position.x = -0.195;
+    start.position.y = -0.40;
     start.position.z = 0.29; 
     start.orientation.w = Q.w();
     start.orientation.x = Q.x();
@@ -89,10 +89,10 @@ int main(int argc, char *argv[])
     const std::vector<double> q0 = {-1.6097532510757446, -0.34197139739990234, 0.0951523706316948, -0.42233070731163025, -0.016888976097106934, -1.4525935649871826, 0.03369557857513428};
 
     int divx = 15;
-    int divy = 8;
+    int divy = 3;
     double quota = 0;
-    double xf = 0.24;
-    double yf = -0.52;
+    double xf = 0.195;
+    double yf = -0.55;
 
     // tf2_ros::Buffer tfBuffer;
     // tf2_ros::TransformListener tfListener(tfBuffer);

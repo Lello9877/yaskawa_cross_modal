@@ -26,6 +26,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(Eigen3 REQUIRED)
 find_package(rosbag REQUIRED)
+find_package(PCL 1.2 REQUIRED)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -150,6 +151,8 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
+
+
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
 #   src/${PROJECT_NAME}/yaskawa_cross_modal.cpp
@@ -215,11 +218,16 @@ add_dependencies(visualize_pcl ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPO
 target_link_libraries(visualize_pcl ${catkin_LIBRARIES})
 target_link_libraries(visualize_pcl ${rosbag_LIBRARIES})
 
+
 include_directories(${rosbag_INCLUDE_DIRS})
+include_directories(${PCL_INCLUDE_DIRS})
+link_directories(${PCL_LIBRARY_DIRS})
+add_definitions(${PCL_DEFINITIONS})
 add_executable(processing_pcl src/processing_pcl.cpp)
 add_dependencies(processing_pcl ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(processing_pcl ${catkin_LIBRARIES})
 target_link_libraries(processing_pcl ${rosbag_LIBRARIES})
+target_link_libraries(processing_pcl ${PCL_LIBRARIES})
 
 #############
 ## Install ##
