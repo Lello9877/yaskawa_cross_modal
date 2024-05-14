@@ -12,6 +12,7 @@
 #include <pcl/surface/mls.h>
 #include <pcl/point_types_conversion.h>
 #include <pcl/surface/reconstruction.h>
+#include <pcl/filters/voxel_grid.h>
 #define foreach BOOST_FOREACH
 
 template <typename T>
@@ -60,6 +61,7 @@ int main(int argc, char** argv)
     // Load input file into a PointCloud<T> with an appropriate type
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>());
     // Load bun0.pcd -- should be available with the PCL archive in test 
+    //pcl::io::loadPCDFile("/home/workstation2/ws_cross_modal/bags/PCL_centroide2_retta.pcd", *cloud);
     pcl::io::loadPCDFile("/home/workstation2/ws_cross_modal/bags/PCL_centroide2_retta.pcd", *cloud);
 
     // Create a KD-Tree
@@ -72,16 +74,32 @@ int main(int argc, char** argv)
     pcl::MovingLeastSquares<pcl::PointXYZ, pcl::PointNormal> mls;
     mls.setComputeNormals(true);
 
-    // Set parameters
+    // // Set parameters
     mls.setInputCloud(cloud);
+    //mls.setUpsamplingMethod(pcl::MovingLeastSquares<pcl::PointXYZ, pcl::PointNormal>::UpsamplingMethod::RANDOM_UNIFORM_DENSITY);
+    mls.setUpsamplingMethod(pcl::MovingLeastSquares<pcl::PointXYZ, pcl::PointNormal>::UpsamplingMethod::SAMPLE_LOCAL_PLANE);
+    mls.setUpsamplingRadius(0.02);
+    mls.setUpsamplingStepSize(0.01);
+    //mls.setPointDensity(100);
     mls.setPolynomialOrder(2);
     mls.setSearchMethod(tree);
     mls.setSearchRadius(0.03);
+    
     // Reconstruct
     mls.process(mls_points);
 
     // Save output
+    //pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_centroide2_retta_mls.pcd", mls_points);
     pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_centroide2_retta_mls.pcd", mls_points);
+
+    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_to_filter(new pcl::PointCloud<pcl::PointXYZ>());
+    pcl::PointCloud<pcl::PointXYZ>::Ptr filteredCloud(new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::io::loadPCDFile("/home/workstation2/ws_cross_modal/bags/PCL_centroide2_retta_mls.pcd", *cloud_to_filter);
+    pcl::VoxelGrid<pcl::PointXYZ> filter;
+	filter.setInputCloud(cloud_to_filter);
+    filter.setLeafSize(0.008, 0.0, 0.0);
+    filter.filter(*filteredCloud);
+    pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_centroide2_retta_filtered.pcd", *filteredCloud);
 
     return 0;
 }
