@@ -13,6 +13,9 @@
 #include <pcl/point_types_conversion.h>
 #include <pcl/surface/reconstruction.h>
 #include <pcl/filters/voxel_grid.h>
+#include <pcl/segmentation/extract_clusters.h>
+#include <pcl/segmentation/region_growing_rgb.h>
+#include <pcl/filters/random_sample.h>
 #define foreach BOOST_FOREACH
 
 template <typename T>
@@ -60,46 +63,87 @@ int main(int argc, char** argv)
 
     // Load input file into a PointCloud<T> with an appropriate type
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>());
-    // Load bun0.pcd -- should be available with the PCL archive in test 
-    //pcl::io::loadPCDFile("/home/workstation2/ws_cross_modal/bags/PCL_centroide2_retta.pcd", *cloud);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_to_filter(new pcl::PointCloud<pcl::PointXYZ>());
+    pcl::PointCloud<pcl::PointXYZ>::Ptr filteredCloud(new pcl::PointCloud<pcl::PointXYZ>);
+    
     pcl::io::loadPCDFile("/home/workstation2/ws_cross_modal/bags/PCL_centroide2_retta.pcd", *cloud);
-
     // Create a KD-Tree
     pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZ>);
-
     // Output has the PointNormal type in order to store the normals calculated by MLS
     pcl::PointCloud<pcl::PointNormal> mls_points;
 
     // Init object (second point type is for the normals, even if unused)
+
+    // Upsampling tattile retta
     pcl::MovingLeastSquares<pcl::PointXYZ, pcl::PointNormal> mls;
     mls.setComputeNormals(true);
-
-    // // Set parameters
     mls.setInputCloud(cloud);
-    //mls.setUpsamplingMethod(pcl::MovingLeastSquares<pcl::PointXYZ, pcl::PointNormal>::UpsamplingMethod::RANDOM_UNIFORM_DENSITY);
-    mls.setUpsamplingMethod(pcl::MovingLeastSquares<pcl::PointXYZ, pcl::PointNormal>::UpsamplingMethod::SAMPLE_LOCAL_PLANE);
+    mls.setUpsamplingMethod(pcl::MovingLeastSquares<pcl::PointXYZ, pcl::PointNormal>::UpsamplingMethod::RANDOM_UNIFORM_DENSITY);
+    //mls.setUpsamplingMethod(pcl::MovingLeastSquares<pcl::PointXYZ, pcl::PointNormal>::UpsamplingMethod::SAMPLE_LOCAL_PLANE);
     mls.setUpsamplingRadius(0.02);
     mls.setUpsamplingStepSize(0.01);
-    //mls.setPointDensity(100);
+    mls.setPointDensity(100000);
     mls.setPolynomialOrder(2);
     mls.setSearchMethod(tree);
     mls.setSearchRadius(0.03);
-    
-    // Reconstruct
     mls.process(mls_points);
-
-    // Save output
-    //pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_centroide2_retta_mls.pcd", mls_points);
     pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_centroide2_retta_mls.pcd", mls_points);
 
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_to_filter(new pcl::PointCloud<pcl::PointXYZ>());
-    pcl::PointCloud<pcl::PointXYZ>::Ptr filteredCloud(new pcl::PointCloud<pcl::PointXYZ>);
+    // Filtraggio VoxelGrid tattile retta
     pcl::io::loadPCDFile("/home/workstation2/ws_cross_modal/bags/PCL_centroide2_retta_mls.pcd", *cloud_to_filter);
     pcl::VoxelGrid<pcl::PointXYZ> filter;
 	filter.setInputCloud(cloud_to_filter);
-    filter.setLeafSize(0.008, 0.0, 0.0);
+    filter.setLeafSize(0.0005, 0.0, 0.0);
     filter.filter(*filteredCloud);
     pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_centroide2_retta_filtered.pcd", *filteredCloud);
+
+    // Segmentazione visuale retta
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_rgb(new pcl::PointCloud<pcl::PointXYZRGB>);
+    pcl::io::loadPCDFile("/home/workstation2/ws_cross_modal/bags/PCL_visuale_retta.pcd", *cloud_rgb);
+    pcl::search::KdTree<pcl::PointXYZRGB>::Ptr kdtree(new pcl::search::KdTree<pcl::PointXYZRGB>);
+    kdtree->setInputCloud(cloud_rgb);
+    pcl::RegionGrowingRGB<pcl::PointXYZRGB> clustering;
+	clustering.setInputCloud(cloud_rgb);
+	clustering.setSearchMethod(kdtree);
+    clustering.setMinClusterSize(100);
+    clustering.setDistanceThreshold(10);
+    clustering.setPointColorThreshold(6);
+    clustering.setRegionColorThreshold(5);
+    std::vector <pcl::PointIndices> clusters;
+	clustering.extract(clusters);
+
+    // For every cluster...
+	int currentClusterNum = 1;
+	for (std::vector<pcl::PointIndices>::const_iterator i = clusters.begin(); i != clusters.end(); ++i)
+	{
+		// ...add all its points to a new cloud...
+		pcl::PointCloud<pcl::PointXYZRGB>::Ptr cluster(new pcl::PointCloud<pcl::PointXYZRGB>);
+		for (std::vector<int>::const_iterator point = i->indices.begin(); point != i->indices.end(); point++)
+			cluster->points.push_back(cloud_rgb->points[*point]);
+		cluster->width = cluster->points.size();
+		cluster->height = 1;
+		cluster->is_dense = true;
+
+		// ...and save it to disk.
+		if (cluster->points.size() <= 0)
+			break;
+		std::cout << "Cluster " << currentClusterNum << " has " << cluster->points.size() << " points." << std::endl;
+		std::string fileName = "/home/workstation2/ws_cross_modal/bags/cluster" + boost::to_string(currentClusterNum) + ".pcd";
+		pcl::io::savePCDFile(fileName, *cluster);
+
+		currentClusterNum++;
+	}
+
+    // Filtraggio visuale retta
+    int num_points = 704;
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_to_filt(new pcl::PointCloud<pcl::PointXYZRGB>);
+    pcl::io::loadPCDFile("/home/workstation2/ws_cross_modal/bags/cluster9.pcd", *cloud_to_filt);
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZRGB>);
+    pcl::RandomSample<pcl::PointXYZRGB> sampler;
+    sampler.setInputCloud(cloud_to_filt);
+    sampler.setSample(num_points);
+    sampler.filter(*cloud_filtered);
+    pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_visuale_retta_filtered.pcd", *cloud_filtered);
 
     return 0;
 }
