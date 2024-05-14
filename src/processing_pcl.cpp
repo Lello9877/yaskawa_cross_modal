@@ -16,6 +16,7 @@
 #include <pcl/segmentation/extract_clusters.h>
 #include <pcl/segmentation/region_growing_rgb.h>
 #include <pcl/filters/random_sample.h>
+#include <pcl/registration/icp.h>
 #define foreach BOOST_FOREACH
 
 template <typename T>
@@ -135,7 +136,7 @@ int main(int argc, char** argv)
 	}
 
     // Filtraggio visuale retta
-    int num_points = 704;
+    int num_points = 684;
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_to_filt(new pcl::PointCloud<pcl::PointXYZRGB>);
     pcl::io::loadPCDFile("/home/workstation2/ws_cross_modal/bags/cluster9.pcd", *cloud_to_filt);
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZRGB>);
@@ -144,6 +145,27 @@ int main(int argc, char** argv)
     sampler.setSample(num_points);
     sampler.filter(*cloud_filtered);
     pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_visuale_retta_filtered.pcd", *cloud_filtered);
+
+    // ICP retta
+    pcl::PointCloud<pcl::PointXYZ>::Ptr sourceCloud(new pcl::PointCloud<pcl::PointXYZ>);
+	pcl::PointCloud<pcl::PointXYZ>::Ptr targetCloud(new pcl::PointCloud<pcl::PointXYZ>);
+	pcl::PointCloud<pcl::PointXYZ>::Ptr finalCloud(new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::io::loadPCDFile("/home/workstation2/ws_cross_modal/bags/PCL_centroide2_retta_filtered.pcd", *sourceCloud);
+    pcl::io::loadPCDFile("/home/workstation2/ws_cross_modal/bags/PCL_visuale_retta_filtered.pcd", *targetCloud);
+    pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> registration;
+	registration.setInputSource(sourceCloud);
+	registration.setInputTarget(targetCloud);
+	registration.align(*finalCloud);
+
+	if (registration.hasConverged())
+	{
+		std::cout << "ICP converged." << std::endl
+				  << "The score is " << registration.getFitnessScore() << std::endl;
+		std::cout << "Transformation matrix:" << std::endl;
+		std::cout << registration.getFinalTransformation() << std::endl;
+        pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_icp_retta.pcd", *finalCloud);
+	}
+	else std::cout << "ICP did not converge." << std::endl;
 
     return 0;
 }
