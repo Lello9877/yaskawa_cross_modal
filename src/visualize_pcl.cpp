@@ -109,7 +109,7 @@ int main(int argc, char** argv)
         centr.header.frame_id = "base_link";
         centr.header.stamp = ros::Time::now();
         pub1.publish(centr);
-        bag_read_and_send<sensor_msgs::PointCloud2>("/home/workstation2/ws_cross_modal/bags/PCL_realsense_spirale.bag", "/cloud2_base", pub2);
+        bag_read_and_send<sensor_msgs::PointCloud2>("/home/workstation2/ws_cross_modal/bags/PCL_visuale_spirale.bag", "/cloud2_base", pub2);
         loop_rate.sleep();
     }
     return 0;
