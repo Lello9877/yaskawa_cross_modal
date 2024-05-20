@@ -239,6 +239,16 @@ target_link_libraries(icp ${catkin_LIBRARIES})
 target_link_libraries(icp ${rosbag_LIBRARIES})
 target_link_libraries(icp ${PCL_LIBRARIES})
 
+include_directories(${rosbag_INCLUDE_DIRS})
+include_directories(${PCL_INCLUDE_DIRS})
+link_directories(${PCL_LIBRARY_DIRS})
+add_definitions(${PCL_DEFINITIONS})
+add_executable(interpolation src/interpolation.cpp)
+add_dependencies(interpolation ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(interpolation ${catkin_LIBRARIES})
+target_link_libraries(interpolation ${rosbag_LIBRARIES})
+target_link_libraries(interpolation ${PCL_LIBRARIES})
+
 #############
 ## Install ##
 #############

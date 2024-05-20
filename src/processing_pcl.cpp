@@ -66,7 +66,7 @@ int main(int argc, char** argv)
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_to_filter(new pcl::PointCloud<pcl::PointXYZ>());
     pcl::PointCloud<pcl::PointXYZ>::Ptr filteredCloud(new pcl::PointCloud<pcl::PointXYZ>);
     
-    pcl::io::loadPCDFile("/home/workstation2/ws_cross_modal/bags/PCL_centroide2_parabola.pcd", *cloud);
+    pcl::io::loadPCDFile("/home/workstation2/ws_cross_modal/bags/PCL_centroide2_spirale.pcd", *cloud);
     // std::cout << *cloud << std::endl;
     // Create a KD-Tree
     pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZ>);
@@ -127,28 +127,29 @@ int main(int argc, char** argv)
         // Upsampling method. Other possibilites are DISTINCT_CLOUD, RANDOM_UNIFORM_DENSITY
         // and VOXEL_GRID_DILATION. NONE disables upsampling. Check the API for details.
         //filter.setUpsamplingMethod(pcl::MovingLeastSquares<pcl::PointXYZ, pcl::PointXYZ>::SAMPLE_LOCAL_PLANE);
-        filter.setUpsamplingMethod(pcl::MovingLeastSquares<pcl::PointXYZ, pcl::PointXYZ>::UpsamplingMethod::RANDOM_UNIFORM_DENSITY);
+        filter.setUpsamplingMethod(pcl::MovingLeastSquares<pcl::PointXYZ, pcl::PointXYZ>::UpsamplingMethod::SAMPLE_LOCAL_PLANE);
         // Radius around each point, where the local plane will be sampled.
         filter.setUpsamplingRadius(0.03-dec);
         filter.setPointDensity(300);
         // Sampling step size. Bigger values will yield less (if any) new points.
         filter.setUpsamplingStepSize(0.01);
+        filter.setPolynomialFit(true);
         filter.setPolynomialOrder(2);
         filter.process(*filteredCloud);
         std::cout << *filteredCloud << std::endl;
-        pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_centroide2_parabola_mls.pcd", *filteredCloud);
-        pcl::io::loadPCDFile("/home/workstation2/ws_cross_modal/bags/PCL_centroide2_parabola_mls.pcd", *cloud);
+        pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_centroide2_spirale_mls.pcd", *filteredCloud);
+        pcl::io::loadPCDFile("/home/workstation2/ws_cross_modal/bags/PCL_centroide2_spirale_mls.pcd", *cloud);
         dec = dec + 0.00;
     }
 
     // Filtraggio VoxelGrid tattile spirale
-    // pcl::io::loadPCDFile("/home/workstation2/ws_cross_modal/bags/PCL_centroide2_spirale_mls.pcd", *cloud_to_filter);
-    // pcl::VoxelGrid<pcl::PointXYZ> voxel;
-	// voxel.setInputCloud(cloud_to_filter);
-    // voxel.setLeafSize(0.0005, 0.0005, 0.0005);
-    // voxel.filter(*filteredCloud);
-    // std::cout << *filteredCloud << std::endl;
-    // pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_centroide2_spirale_filtered.pcd", *filteredCloud);
+    pcl::io::loadPCDFile("/home/workstation2/ws_cross_modal/bags/PCL_centroide2_spirale_mls.pcd", *cloud_to_filter);
+    pcl::VoxelGrid<pcl::PointXYZ> voxel;
+	voxel.setInputCloud(cloud_to_filter);
+    voxel.setLeafSize(0.005, 0.005, 0.005);
+    voxel.filter(*filteredCloud);
+    std::cout << *filteredCloud << std::endl;
+    pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_centroide2_spirale_filtered.pcd", *filteredCloud);
 
 
     // Segmentazione visuale spirale
