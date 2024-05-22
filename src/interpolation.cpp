@@ -4,7 +4,6 @@
 #include <pcl/point_types.h>
 #include <pcl/io/pcd_io.h>
 
-
 typedef Eigen::Spline<float, 3> Spline3d;
 
 void spline(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::PointXYZ>::Ptr cloudInterpolated, int num_points) 
@@ -68,7 +67,7 @@ int main(int argc, char **argv)
         sortedCloud->points.at(i).z = cloud->points.at(indice_spirale[i]).z;
     }
 
-    int num_points = 400;
+    int num_points = 600;
     spline(sortedCloud, cloudInterpolated, num_points);
     pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_centroide2_spirale_spline.pcd", *cloudInterpolated);
 
