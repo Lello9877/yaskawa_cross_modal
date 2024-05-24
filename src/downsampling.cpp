@@ -16,6 +16,10 @@
 #include <pcl/segmentation/region_growing_rgb.h>
 #include <pcl/sample_consensus/sac_model_sphere.h>
 #include <pcl/common/pca.h>
+#include <pcl/sample_consensus/ransac.h>
+#include <pcl/sample_consensus/sac_model_plane.h>
+#include <pcl/sample_consensus/sac_model_sphere.h>
+#include <pcl/visualization/pcl_visualizer.h>
 #define foreach BOOST_FOREACH
 
 template <typename T>
@@ -120,7 +124,7 @@ int main(int argc, char** argv)
     // bag_write<sensor_msgs::PointCloud2>("/home/workstation2/ws_cross_modal/bags/PCL_centroide2_spirale.bag", "/pcl2", centr2);
 
     // Load input file into a PointCloud<T> with an appropriate type
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>());
+    //pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>());
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_to_filter(new pcl::PointCloud<pcl::PointXYZ>());
     pcl::PointCloud<pcl::PointXYZ>::Ptr filteredCloud(new pcl::PointCloud<pcl::PointXYZ>);
     
@@ -227,29 +231,73 @@ int main(int argc, char** argv)
     std::string path_parabola_visuale = "/home/workstation2/ws_cross_modal/bags/PCL_visuale_parabola_filtered.pcd";
     std::string path_retta_visuale = "/home/workstation2/ws_cross_modal/bags/PCL_visuale_retta_filtered.pcd";
 
-    if(pcl::io::loadPCDFile<pcl::PointXYZ>(path_spirale_tattile, *cloud) != 0) { return -1; }
-    num_points = cloud->points.size();
-    std::cout << "Punti Spirale: " << num_points << std::endl;
-    downsampling(path_spirale_visuale, num_points, cloud_downsampled);
-    pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_visuale_spirale_down.pcd", *cloud_downsampled);
+    // if(pcl::io::loadPCDFile<pcl::PointXYZ>(path_spirale_tattile, *cloud) != 0) { return -1; }
+    // num_points = cloud->points.size();
+    // std::cout << "Punti Spirale: " << num_points << std::endl;
+    // downsampling(path_spirale_visuale, num_points, cloud_downsampled);
+    // pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_visuale_spirale_down.pcd", *cloud_downsampled);
 
-    if(pcl::io::loadPCDFile<pcl::PointXYZ>(path_cerchio_tattile, *cloud) != 0) { return -1; }
-    num_points = cloud->points.size();
-    std::cout << "Punti Cerchio: " << num_points << std::endl;
-    downsampling(path_cerchio_visuale, num_points, cloud_downsampled);
-    pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_visuale_cerchio_down.pcd", *cloud_downsampled);
+    // if(pcl::io::loadPCDFile<pcl::PointXYZ>(path_cerchio_tattile, *cloud) != 0) { return -1; }
+    // num_points = cloud->points.size();
+    // std::cout << "Punti Cerchio: " << num_points << std::endl;
+    // downsampling(path_cerchio_visuale, num_points, cloud_downsampled);
+    // pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_visuale_cerchio_down.pcd", *cloud_downsampled);
 
-    if(pcl::io::loadPCDFile<pcl::PointXYZ>(path_parabola_tattile, *cloud) != 0) { return -1; }
-    num_points = cloud->points.size();
-    std::cout << "Punti Parabola: " << num_points << std::endl;
-    downsampling(path_parabola_visuale, num_points, cloud_downsampled);
-    pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_visuale_parabola_down.pcd", *cloud_downsampled);
+    // if(pcl::io::loadPCDFile<pcl::PointXYZ>(path_parabola_tattile, *cloud) != 0) { return -1; }
+    // num_points = cloud->points.size();
+    // std::cout << "Punti Parabola: " << num_points << std::endl;
+    // downsampling(path_parabola_visuale, num_points, cloud_downsampled);
+    // pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_visuale_parabola_down.pcd", *cloud_downsampled);
 
-    if(pcl::io::loadPCDFile<pcl::PointXYZ>(path_retta_tattile, *cloud) != 0) { return -1; }
-    num_points = cloud->points.size();
-    std::cout << "Punti Retta: " << num_points << std::endl;
-    downsampling(path_retta_visuale, num_points, cloud_downsampled);
-    pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_visuale_retta_down.pcd", *cloud_downsampled);
-    
+    // if(pcl::io::loadPCDFile<pcl::PointXYZ>(path_retta_tattile, *cloud) != 0) { return -1; }
+    // num_points = cloud->points.size();
+    // std::cout << "Punti Retta: " << num_points << std::endl;
+    // downsampling(path_retta_visuale, num_points, cloud_downsampled);
+    // pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_visuale_retta_down.pcd", *cloud_downsampled);
+
+    // pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+    // pcl::PointCloud<pcl::PointXYZRGB>::Ptr final(new pcl::PointCloud<pcl::PointXYZRGB>);
+    // std::vector<int> inliers;
+    // if(pcl::io::loadPCDFile<pcl::PointXYZRGB>("/home/workstation2/ws_cross_modal/bags/PCL_visuale_spirale_down.pcd", *cloud) != 0) { return -1; }
+    // for(int i = 0; i < cloud->points.size(); i++)
+    //     cloud->points.at(i).z = 0;
+
+    // // created RandomSampleConsensus object and compute the appropriated model
+    // pcl::SampleConsensusModelSphere<pcl::PointXYZRGB>::Ptr
+    // model_s(new pcl::SampleConsensusModelSphere<pcl::PointXYZRGB>(cloud));
+    // pcl::SampleConsensusModelPlane<pcl::PointXYZRGB>::Ptr
+    // model_p (new pcl::SampleConsensusModelPlane<pcl::PointXYZRGB>(cloud));
+    // pcl::RandomSampleConsensus<pcl::PointXYZRGB> ransac(model_p);
+    // ransac.setDistanceThreshold(.01);
+    // ransac.computeModel();
+    // ransac.getInliers(inliers);
+    // // for(int i = 0; i < inliers.size(); i++)
+    // //     std::cout << "Elemento " << i << ":" << inliers.at(i) << std::endl;
+
+    // // pcl::RandomSampleConsensus<pcl::PointXYZRGB> ransac(model_s);
+    // // ransac.setDistanceThreshold(.01);
+    // // ransac.computeModel();
+    // // ransac.getInliers(inliers);
+
+    // pcl::copyPointCloud(*cloud, inliers, *final);
+    // pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_visuale_spirale_ransac.pcd", *final);
+
+    // Filtraggio Voxel Grid per usare la Spline
+    // pcl::io::loadPCDFile("/home/workstation2/ws_cross_modal/bags/PCL_visuale_spirale_down.pcd", *cloud_to_filter);
+    // pcl::VoxelGrid<pcl::PointXYZ> filter;
+	// filter.setInputCloud(cloud_to_filter);
+    // filter.setLeafSize(0.03, 0.03, 0.03);
+    // filter.filter(*filteredCloud);
+    // pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_visuale_spirale_voxel.pcd", *filteredCloud);
+
+    // int num = 6;
+    // pcl::PointCloud<pcl::PointXYZ>::Ptr prova(new pcl::PointCloud<pcl::PointXYZ>);
+    // prova->points.resize(num);
+    // prova->width = num;
+    // prova->height = 1;
+    // for(int i = 0; i < num; i++)
+    //     prova->points.at(i) = filteredCloud->points.at(i);
+    // pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_prova.pcd", *prova);
+
     return 0;
 }
