@@ -146,12 +146,6 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-include_directories(
-  include
-  ${catkin_INCLUDE_DIRS}
-)
-
-
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
@@ -183,6 +177,15 @@ include_directories(
 #   ${catkin_LIBRARIES}
 # )
 
+include_directories(
+  include
+  ${catkin_INCLUDE_DIRS}
+)
+include_directories(${rosbag_INCLUDE_DIRS})
+include_directories(${PCL_INCLUDE_DIRS})
+link_directories(${PCL_LIBRARY_DIRS})
+add_definitions(${PCL_DEFINITIONS})
+
 add_executable(JointTrajActionServer src/JointTrajActionServer.cpp)
 add_dependencies(JointTrajActionServer ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(JointTrajActionServer ${catkin_LIBRARIES})
@@ -212,42 +215,34 @@ add_dependencies(task_camera ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORT
 target_link_libraries(task_camera ${catkin_LIBRARIES})
 target_link_libraries(task_camera ${rosbag_LIBRARIES})
 
-include_directories(${rosbag_INCLUDE_DIRS})
 add_executable(visualize_pcl src/visualize_pcl.cpp)
 add_dependencies(visualize_pcl ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(visualize_pcl ${catkin_LIBRARIES})
 target_link_libraries(visualize_pcl ${rosbag_LIBRARIES})
 
-
-include_directories(${rosbag_INCLUDE_DIRS})
-include_directories(${PCL_INCLUDE_DIRS})
-link_directories(${PCL_LIBRARY_DIRS})
-add_definitions(${PCL_DEFINITIONS})
 add_executable(downsampling src/downsampling.cpp)
 add_dependencies(downsampling ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(downsampling ${catkin_LIBRARIES})
 target_link_libraries(downsampling ${rosbag_LIBRARIES})
 target_link_libraries(downsampling ${PCL_LIBRARIES})
 
-include_directories(${rosbag_INCLUDE_DIRS})
-include_directories(${PCL_INCLUDE_DIRS})
-link_directories(${PCL_LIBRARY_DIRS})
-add_definitions(${PCL_DEFINITIONS})
 add_executable(icp src/icp.cpp)
 add_dependencies(icp ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(icp ${catkin_LIBRARIES})
 target_link_libraries(icp ${rosbag_LIBRARIES})
 target_link_libraries(icp ${PCL_LIBRARIES})
 
-include_directories(${rosbag_INCLUDE_DIRS})
-include_directories(${PCL_INCLUDE_DIRS})
-link_directories(${PCL_LIBRARY_DIRS})
-add_definitions(${PCL_DEFINITIONS})
 add_executable(interpolation src/interpolation.cpp)
 add_dependencies(interpolation ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(interpolation ${catkin_LIBRARIES})
 target_link_libraries(interpolation ${rosbag_LIBRARIES})
 target_link_libraries(interpolation ${PCL_LIBRARIES})
+
+add_executable(visual_post_processing src/visual_post_processing.cpp)
+add_dependencies(visual_post_processing ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(visual_post_processing ${catkin_LIBRARIES})
+target_link_libraries(visual_post_processing ${rosbag_LIBRARIES})
+target_link_libraries(visual_post_processing ${PCL_LIBRARIES})
 
 #############
 ## Install ##
