@@ -22,6 +22,7 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_visual_tools
   sun_robot_ros
   sensor_msgs
+  wire_params_static
 )
 
 find_package(Eigen3 REQUIRED)
@@ -75,11 +76,9 @@ add_service_files(
 )
 
 ## Generate actions in the 'action' folder
-add_action_files(
-   FILES
-   CartesianTraj.action
-   JointTraj.action
-)
+## add_action_files(
+##   FILES
+## )
 
 ## Generate added messages and services with any dependencies listed here
  generate_messages(
@@ -186,18 +185,6 @@ include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
-add_executable(JointTrajActionServer src/JointTrajActionServer.cpp)
-add_dependencies(JointTrajActionServer ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(JointTrajActionServer ${catkin_LIBRARIES})
-
-add_executable(CartesianTrajActionServer src/CartesianTrajActionServer.cpp)
-add_dependencies(CartesianTrajActionServer ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(CartesianTrajActionServer ${catkin_LIBRARIES})
-
-add_executable(clik src/clik.cpp)
-add_dependencies(clik ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(clik ${catkin_LIBRARIES})
-
 add_executable(task src/task.cpp)
 add_dependencies(task ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(task ${catkin_LIBRARIES})
@@ -243,6 +230,12 @@ add_dependencies(visual_post_processing ${${PROJECT_NAME}_EXPORTED_TARGETS} ${ca
 target_link_libraries(visual_post_processing ${catkin_LIBRARIES})
 target_link_libraries(visual_post_processing ${rosbag_LIBRARIES})
 target_link_libraries(visual_post_processing ${PCL_LIBRARIES})
+
+add_executable(search_initial_points src/search_initial_points.cpp)
+add_dependencies(search_initial_points ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(search_initial_points ${catkin_LIBRARIES})
+target_link_libraries(search_initial_points ${rosbag_LIBRARIES})
+target_link_libraries(search_initial_points ${PCL_LIBRARIES})
 
 #############
 ## Install ##

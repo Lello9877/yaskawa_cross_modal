@@ -1,8 +1,0 @@
-# Goal
-float64 duration
-float64[] qf
----
-# Result
----
-# Feedback
-duration time_left
