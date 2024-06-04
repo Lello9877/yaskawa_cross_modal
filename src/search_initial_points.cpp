@@ -67,6 +67,9 @@ void sort_points(std::string path_pcl, int indice_old, int indice_new, pcl::Poin
     bool presente, trovato, entrato;
     double distanza, angolo, prod, minima;
 
+    indice_ordinato.push_back(indice_old);
+    indice_ordinato.push_back(indice_new);
+
     if(pcl::io::loadPCDFile<pcl::PointXYZ>(path_pcl, *cloud) != 0) { return; }
     // sortedCloud->points.resize(cloud->points.size());
     sortedCloud->points.push_back(cloud->points.at(indice_old));
@@ -174,7 +177,7 @@ int main(int argc, char **argv)
     pcl::PointCloud<pcl::PointXYZ>::Ptr tempInterpolatedCloud(new pcl::PointCloud<pcl::PointXYZ>());
     int indice_old, indice_new;
     Eigen::Vector3d differenza;
-    std::string path_visuale = "/home/workstation2/ws_cross_modal/bags/PCL_visuale_spirale_proc.pcd";
+    std::string path_visuale = "/home/workstation2/ws_cross_modal/bags/PCL_visuale_retta_proc.pcd";
     std::string path_tattile = "/home/workstation2/ws_cross_modal/bags/PCL_centroide2_spirale.pcd";
     if(pcl::io::loadPCDFile<pcl::PointXYZ>(path_visuale, *cloud) != 0) { return -1; }
 
@@ -187,29 +190,39 @@ int main(int argc, char **argv)
     std::vector<int> indice_vicino;
     std::vector<double> distanza_vicino;
     std::vector<Eigen::Vector3d> direzione;
-    soglia = 0.08;
+    soglia = 0.04; // dmin + 0.01
+    int count = 0;
 
-    for(int i = 1; i < cloud->points.size(); i++)
+    while(true && count < 10) // contatore di sicurezza per uscire dal ciclo 
     {
-        distanza = euclideanDistance(cloud->points.at(indice_iniziale).x, cloud->points.at(indice_iniziale).y, cloud->points.at(indice_iniziale).z, cloud->points.at(i).x, cloud->points.at(i).y, cloud->points.at(i).z);
-        if(distanza < soglia)
+        for(int i = 1; i < cloud->points.size(); i++)
         {
-            distanza_vicino.push_back(distanza);
-            indice_vicino.push_back(i);
-            // std::cout << i << std::endl;
+            distanza = euclideanDistance(cloud->points.at(indice_iniziale).x, cloud->points.at(indice_iniziale).y, cloud->points.at(indice_iniziale).z, cloud->points.at(i).x, cloud->points.at(i).y, cloud->points.at(i).z);
+            if(distanza < soglia)
+            {
+                distanza_vicino.push_back(distanza);
+                indice_vicino.push_back(i);
+                // std::cout << "Ho trovato un vicino con indice: " << i << std::endl;
+            }
+
         }
 
+        for(int i = 0; i < indice_vicino.size(); i++)
+        {
+            differenza.x() = cloud->points.at(indice_vicino.at(i)).x - cloud->points.at(indice_iniziale).x;
+            differenza.y() = cloud->points.at(indice_vicino.at(i)).y - cloud->points.at(indice_iniziale).y;
+            differenza.z() = cloud->points.at(indice_vicino.at(i)).z - cloud->points.at(indice_iniziale).z;
+            direzione.push_back(differenza);
+        }
+        std::cout << direzione.size() << std::endl;
+        if(direzione.size() != 0)
+            break;
+        else { std::cout << "Nessuna direzione Trovata!! Incremento la distanza di soglia..." << std::endl; soglia += 0.01; count++; }
     }
 
-    for(int i = 0; i < indice_vicino.size(); i++)
-    {
-        differenza.x() = cloud->points.at(indice_vicino.at(i)).x - cloud->points.at(indice_iniziale).x;
-        differenza.y() = cloud->points.at(indice_vicino.at(i)).y - cloud->points.at(indice_iniziale).y;
-        differenza.z() = cloud->points.at(indice_vicino.at(i)).z - cloud->points.at(indice_iniziale).z;
-        direzione.push_back(differenza);
-    }
-
-    if(direzione.size() > 1)
+    // std::cout << "Dimensione del vettore delle direzioni: " << direzione.size() << std::endl;
+ 
+    if(direzione.size() > 2)
     {
         trovato = false;
         for(int i = 0; i < direzione.size()-1 && trovato == false; i++)
@@ -228,17 +241,16 @@ int main(int argc, char **argv)
             }
         }
     } 
-    else if(direzione.size() == 1)
+    else
     {
         indice_old = indice_iniziale; 
         indice_new = indice_vicino.at(0); 
     }
-    else { std::cout << "Nessuna direzione trovata!!!" << std::endl; return -1; }
 
     std::cout << "Old: " << indice_old << std::endl << "New: " << indice_new << std::endl;
     sort_points(path_visuale, indice_old, indice_new, tempCloud);
     spline(tempCloud, tempInterpolatedCloud, 400);
-    pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_visuale_spirale_esp.pcd", *tempInterpolatedCloud);
+    pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_visuale_retta_esp.pcd", *tempInterpolatedCloud);
 
     Eigen::Vector3d point_old, point_new, point_temp;
     point_old.x() = tempCloud->points.at(tempCloud->points.size()-1).x;
@@ -262,7 +274,7 @@ int main(int argc, char **argv)
     // indice_old = 26; indice_new = 27;
     sort_points(path_visuale, indice_old, indice_new, sortedCloud);
     spline(sortedCloud, interpolatedCloud, 400);
-    pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_visuale_spirale_spline.pcd", *interpolatedCloud);
+    pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_visuale_retta_spline.pcd", *interpolatedCloud);
 
     return 0;
 }
