@@ -57,8 +57,8 @@ void sort_points(std::string path_pcl, int indice_old, int indice_new, pcl::Poin
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>());
     Eigen::Vector3d new_point, old_point, temp_point, temp_diff, differenza;
     int count, sorted_count;
-    int indice_minimo;
-    double valore_minimo;
+    // int indice_minimo;
+    // double valore_minimo;
     std::vector<int> indice_ordinato;
     std::vector<int> punto_candidato;
     std::vector<double> distanza_decrescente;
@@ -177,7 +177,7 @@ int main(int argc, char **argv)
     pcl::PointCloud<pcl::PointXYZ>::Ptr tempInterpolatedCloud(new pcl::PointCloud<pcl::PointXYZ>());
     int indice_old, indice_new;
     Eigen::Vector3d differenza;
-    std::string path_visuale = "/home/workstation2/ws_cross_modal/bags/PCL_visuale_retta_proc.pcd";
+    std::string path_visuale = "/home/workstation2/ws_cross_modal/bags/PCL_visuale_spirale_proc.pcd";
     std::string path_tattile = "/home/workstation2/ws_cross_modal/bags/PCL_centroide2_spirale.pcd";
     if(pcl::io::loadPCDFile<pcl::PointXYZ>(path_visuale, *cloud) != 0) { return -1; }
 
@@ -221,7 +221,7 @@ int main(int argc, char **argv)
     }
 
     // std::cout << "Dimensione del vettore delle direzioni: " << direzione.size() << std::endl;
- 
+
     if(direzione.size() > 2)
     {
         trovato = false;
@@ -250,7 +250,7 @@ int main(int argc, char **argv)
     std::cout << "Old: " << indice_old << std::endl << "New: " << indice_new << std::endl;
     sort_points(path_visuale, indice_old, indice_new, tempCloud);
     spline(tempCloud, tempInterpolatedCloud, 400);
-    pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_visuale_retta_esp.pcd", *tempInterpolatedCloud);
+    pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_visuale_spirale_esp.pcd", *tempInterpolatedCloud);
 
     Eigen::Vector3d point_old, point_new, point_temp;
     point_old.x() = tempCloud->points.at(tempCloud->points.size()-1).x;
@@ -274,7 +274,7 @@ int main(int argc, char **argv)
     // indice_old = 26; indice_new = 27;
     sort_points(path_visuale, indice_old, indice_new, sortedCloud);
     spline(sortedCloud, interpolatedCloud, 400);
-    pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_visuale_retta_spline.pcd", *interpolatedCloud);
+    pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_visuale_spirale_spline.pcd", *interpolatedCloud);
 
     return 0;
 }

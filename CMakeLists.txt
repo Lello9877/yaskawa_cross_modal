@@ -237,6 +237,10 @@ target_link_libraries(search_initial_points ${catkin_LIBRARIES})
 target_link_libraries(search_initial_points ${rosbag_LIBRARIES})
 target_link_libraries(search_initial_points ${PCL_LIBRARIES})
 
+add_executable(direction src/direction.cpp)
+add_dependencies(direction ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(direction ${catkin_LIBRARIES})
+
 #############
 ## Install ##
 #############

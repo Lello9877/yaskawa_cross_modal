@@ -1,0 +1,123 @@
+<launch>
+
+   <arg name="serial_port" default="/dev/ttyUSB3" />
+
+  <arg name="baud_rate" default="1000000" />
+
+  <arg name="serial_timeout" default="1000" />
+
+  <arg name="rows" default="6" />
+
+  <arg name="cols" default="2" />
+
+  <arg name="tf_prefix" default="" />
+
+  <arg name="frame_id" default="fingertip0" />
+
+  <!-- Insert here finger ID [e.g. #F001-28A] | You MUST provide a calibration folder in <pkg-name>/Finger_files-->
+  <arg name="finger_code" default="#F401" />
+
+  <arg name="bool_tactile_logic_filter" default="true" />
+  <arg name="bool_use_tactile_logic_filter" default="$(arg bool_tactile_logic_filter)" />
+  <arg name="logic_filter_voltage_thr" default="0.05" />
+
+  <arg name="bool_filter_voltage" default="false" />
+  <arg name="bool_use_filtered_voltage" default="$(arg bool_filter_voltage)" />
+  <arg name="filter_voltage_cut_freq" default="50.0" />
+  <arg name="filter_voltage_rate" default="500.0" />
+
+  <arg name="bool_filter_wrench" default="false" />
+  <arg name="filter_wrench_cut_freq" default="50.0" />
+  <arg name="filter_wrench_rate" default="500.0" />
+
+  <!-- Invariant args -->
+  <arg name="voltage_raw_topic" default="tactile_voltage/raw" />
+  <arg name="voltage_raw_checked_topic" default="$(arg voltage_raw_topic)_checked" />
+  <arg name="voltage_rect_topic" default="tactile_voltage/rect" />
+  <arg name="action_compute_bias" default="compute_bias_action" />
+  <arg name="wrench_topic" default="wrench" />
+  <arg name="voltage_raw_filter_topic" default="$(arg voltage_raw_topic)_filter" />
+  <arg name="wrench_filter_topic" default="$(arg wrench_topic)_filter" />
+
+  <!-- LEGACY -->
+  <arg name="bool_mov_av_wrench" default="false" />
+  <arg name="bool_use_filtered_wrench_in_mov_av" default="$(arg bool_filter_wrench)" />
+  <arg name="mov_av_wrench_N" default="5" />
+  <arg name="mov_av_wrench_rate" default="50.0" />
+  <arg name="wrench_mov_av_topic" default="$(arg wrench_topic)_m_av" />
+
+  
+  <node name="read_tactile_serial"  pkg="sun_tactile_driver" type="read_tactile_serial" output="screen">
+
+    <param name="serial_port" type="string" value="$(arg serial_port)"/>
+
+    <param name="baud_rate" type="string" value="$(arg baud_rate)"/>
+
+    <param name="serial_timeout" type="string" value="$(arg serial_timeout)"/>
+
+    <param name="rows" value="$(arg rows)"/>
+    <param name="cols" value="$(arg cols)"/>
+
+    <param name="tf_prefix" type="string" value="$(arg tf_prefix)"/>
+    <param name="frame_id" type="string" value="$(arg frame_id)"/>
+
+    <param name="output_topic" type="string" value="$(arg voltage_raw_topic)"/>
+
+  </node>
+
+  <node if="$(arg bool_tactile_logic_filter)" name="tactile_logic_filter"  pkg="sun_tactile_driver" type="tactile_logic_filter" output="screen">
+
+    <param name="in_topic" type="string" value="$(arg voltage_raw_topic)"/>
+
+    <param name="out_topic" type="string" value="$(arg voltage_raw_checked_topic)"/>
+
+    <param name="volt_thr" value="$(arg logic_filter_voltage_thr)"/>
+
+  </node>
+
+  <node if="$(arg bool_filter_voltage)" name="filter_tactile"  pkg="sun_tactile_driver" type="filter_tactile" output="screen">
+
+    <param name="num_voltages" value="$(eval arg('cols') * arg('rows'))"/>
+
+    <param if="$(arg bool_use_tactile_logic_filter)" name="in_topic" type="string" value="$(arg voltage_raw_checked_topic)"/>
+    <param unless="$(arg bool_use_tactile_logic_filter)" name="in_topic" type="string" value="$(arg voltage_raw_topic)"/>
+
+    <param name="out_topic" type="string" value="$(arg voltage_raw_filter_topic)"/>
+
+    <param name="cut_freq" value="$(arg filter_voltage_cut_freq)"/>
+    <param name="rate" value="$(arg filter_voltage_rate)"/>
+
+  </node>
+
+  <node name="remove_bias"  pkg="sun_tactile_driver" type="remove_bias" output="screen">
+
+    <param 
+     if="$(eval (not arg('bool_use_filtered_voltage')) and (not arg('bool_use_tactile_logic_filter')))"
+     name="in_voltage_topic" 
+     type="string" 
+     value="$(arg voltage_raw_topic)"
+     />
+    <param
+     if="$(eval (not arg('bool_use_filtered_voltage')) and (arg('bool_use_tactile_logic_filter')))"
+     name="in_voltage_topic" 
+     type="string" 
+     value="$(arg voltage_raw_checked_topic)"
+    />
+    <param 
+      if="$(arg bool_use_filtered_voltage)" 
+      name="in_voltage_topic" 
+      type="string" 
+      value="$(arg voltage_raw_filter_topic)"
+    />
+
+    <param name="out_voltage_topic" type="string" value="$(arg voltage_rect_topic)"/>
+
+    <param name="action_compute_bias" type="string" value="$(arg action_compute_bias)"/>
+
+    <param name="default_num_samples" value="100"/>
+
+    <param name="num_voltages" value="$(eval arg('cols') * arg('rows'))"/>
+
+  </node>
+
+</launch>
