@@ -82,176 +82,175 @@ int main(int argc, char *argv[])
     ros::init(argc,argv,"task");
     ros::NodeHandle nh;
     sun::RobotMotionClient robot(ros::NodeHandle(nh, "motoman"));
+    robot.waitForServers();
 
-    // robot.waitForServers();
     // Definizione dei publisher, subscriber, servizio di creazione griglia
-    // geometry_msgs::Pose start, end_effector, finger_reference;
-    // geometry_msgs::PoseArray grid;
-    // ros::Publisher pcl_pub = nh.advertise<sensor_msgs::PointCloud>("/pcl",1);
-    // ros::Publisher pcl_centr_pub = nh.advertise<sensor_msgs::PointCloud>("/pcl2",1);
+    geometry_msgs::Pose start, end_effector, finger_reference;
+    geometry_msgs::PoseArray grid;
+    ros::Publisher pcl_pub = nh.advertise<sensor_msgs::PointCloud>("/pcl",1);
+    ros::Publisher pcl_centr_pub = nh.advertise<sensor_msgs::PointCloud>("/pcl2",1);
     ros::Subscriber sub_volt = nh.subscribe("/tactile_voltage", 1, tact_cb);
-    // ros::Subscriber sub_fkine = nh.subscribe("/motoman/clik/fkine", 1, fkine_cb);
-    // ros::ServiceClient grid_client = nh.serviceClient<yaskawa_cross_modal::grid>("grid_srv");
-    // yaskawa_cross_modal::grid srv;
+    ros::Subscriber sub_fkine = nh.subscribe("/motoman/clik/fkine", 1, fkine_cb);
+    ros::ServiceClient grid_client = nh.serviceClient<yaskawa_cross_modal::grid>("grid_srv");
+    yaskawa_cross_modal::grid srv;
     
     // // Posa di partenza, arrivando dalla posa di Home q0
-    // Eigen::Quaterniond Q(0, 0.7071, 0.7071, 0);
-    // Q.normalize();
-    // start.position.x = -0.195;
-    // start.position.y = -0.40;
-    // start.position.z = 0.29; 
-    // start.orientation.w = Q.w();
-    // start.orientation.x = Q.x();
-    // start.orientation.y = Q.y();
-    // start.orientation.z = Q.z();
-    // const std::vector<double> q0 = {-1.6097532510757446, -0.34197139739990234, 0.0951523706316948, -0.42233070731163025, -0.016888976097106934, -1.4525935649871826, 0.03369557857513428};
+    Eigen::Quaterniond Q(0, 0.7071, 0.7071, 0);
+    Q.normalize();
+    start.position.x = -0.195;
+    start.position.y = -0.40;
+    start.position.z = 0.29; 
+    start.orientation.w = Q.w();
+    start.orientation.x = Q.x();
+    start.orientation.y = Q.y();
+    start.orientation.z = Q.z();
+    const std::vector<double> q0 = {-1.6097532510757446, -0.34197139739990234, 0.0951523706316948, -0.42233070731163025, -0.016888976097106934, -1.4525935649871826, 0.03369557857513428};
 
-    // int divx = 15;
-    // int divy = 3;
-    // double quota = 0;
-    // double xf = 0.195;
-    // double yf = -0.55;
+    int divx = 15;
+    int divy = 3;
+    double quota = 0;
+    double xf = 0.195;
+    double yf = -0.55;
 
-    // // tf2_ros::Buffer tfBuffer;
-    // // tf2_ros::TransformListener tfListener(tfBuffer);
-    // // ros::Rate loop_rate(50.0);
+    // tf2_ros::Buffer tfBuffer;
+    // tf2_ros::TransformListener tfListener(tfBuffer);
+    // ros::Rate loop_rate(50.0);
 
-    // // geometry_msgs::TransformStamped transformStamped;
-    // // try {
-    // //     transformStamped = tfBuffer.lookupTransform("tool0", "finger", ros::Time(0), ros::Duration(3.0)); 
-    // // }
-    // // catch (tf2::TransformException &ex) {
-    // //     ROS_WARN("%s",ex.what());
-    // //     ros::Duration(1.0).sleep();
-    // // }
-    // // std::cout << transformStamped << std::endl;
+    // geometry_msgs::TransformStamped transformStamped;
+    // try {
+    //     transformStamped = tfBuffer.lookupTransform("tool0", "finger", ros::Time(0), ros::Duration(3.0)); 
+    // }
+    // catch (tf2::TransformException &ex) {
+    //     ROS_WARN("%s",ex.what());
+    //     ros::Duration(1.0).sleep();
+    // }
+    // std::cout << transformStamped << std::endl;
 
-    // // geometry_msgs::TransformStamped transformStamped;
-    // // try {
-    // //     transformStamped = tfBuffer.lookupTransform("finger", "reference_taxel", ros::Time(0), ros::Duration(3.0)); 
-    // // }
-    // // catch (tf2::TransformException &ex) {
-    // //     ROS_WARN("%s",ex.what());
-    // //     ros::Duration(1.0).sleep();
-    // // }
-    // // std::cout << transformStamped << std::endl;
+    // geometry_msgs::TransformStamped transformStamped;
+    // try {
+    //     transformStamped = tfBuffer.lookupTransform("finger", "reference_taxel", ros::Time(0), ros::Duration(3.0)); 
+    // }
+    // catch (tf2::TransformException &ex) {
+    //     ROS_WARN("%s",ex.what());
+    //     ros::Duration(1.0).sleep();
+    // }
+    // std::cout << transformStamped << std::endl;
 
-    // // // Prelevo la posa per settare l'end effector del robot
-    // // end_effector.orientation = transformStamped.transform.rotation;
-    // // end_effector.position.x = transformStamped.transform.translation.x;
-    // // end_effector.position.y = transformStamped.transform.translation.y;
-    // // end_effector.position.z = transformStamped.transform.translation.z;
+    // // Prelevo la posa per settare l'end effector del robot
+    // end_effector.orientation = transformStamped.transform.rotation;
+    // end_effector.position.x = transformStamped.transform.translation.x;
+    // end_effector.position.y = transformStamped.transform.translation.y;
+    // end_effector.position.z = transformStamped.transform.translation.z;
 
-    // // Posa del pad del sensore in terna finger
-    // finger_reference.position.x = -0.011;
-    // finger_reference.position.y = -0.005;
-    // finger_reference.position.z = 0.005;
-    // Eigen::Quaterniond quat(1,0,0,0);
-    // quat.normalize();
-    // finger_reference.orientation.w = quat.w();
-    // finger_reference.orientation.x = quat.x();
-    // finger_reference.orientation.y = quat.y();
-    // finger_reference.orientation.z = quat.z();
+    // Posa del pad del sensore in terna finger
+    finger_reference.position.x = -0.011;
+    finger_reference.position.y = -0.005;
+    finger_reference.position.z = 0.005;
+    Eigen::Quaterniond quat(1,0,0,0);
+    quat.normalize();
+    finger_reference.orientation.w = quat.w();
+    finger_reference.orientation.x = quat.x();
+    finger_reference.orientation.y = quat.y();
+    finger_reference.orientation.z = quat.z();
 
-    // // Posa per settare l'end effector, ottenuta dalla trasformata tra tool0 e finger
-    // end_effector.position.x = 0.025;
-    // end_effector.position.y = 0.065;
-    // end_effector.position.z = 0.041;
-    // Eigen::Quaterniond Quat(0.707107, -2.25214e-06, 2.25214e-06, -0.707107);
-    // Quat.normalize();
-    // end_effector.orientation.x = Quat.x();
-    // end_effector.orientation.y = Quat.y();
-    // end_effector.orientation.z = Quat.z();
-    // end_effector.orientation.w = Quat.w();
-    // // robot.clik_.set_end_effector(end_effector);
-    // // geometry_msgs::Pose in, out;
-    // // std::string out_frame_id = "base_link";
-    // // robot.clik_.toRobotBaseFrame(in, out, out_frame_id);
+    // Posa per settare l'end effector, ottenuta dalla trasformata tra tool0 e finger
+    end_effector.position.x = 0.025;
+    end_effector.position.y = 0.065;
+    end_effector.position.z = 0.041;
+    Eigen::Quaterniond Quat(0.707107, -2.25214e-06, 2.25214e-06, -0.707107);
+    Quat.normalize();
+    end_effector.orientation.x = Quat.x();
+    end_effector.orientation.y = Quat.y();
+    end_effector.orientation.z = Quat.z();
+    end_effector.orientation.w = Quat.w();
+    robot.clik_.set_end_effector(end_effector);
+    // geometry_msgs::Pose in, out;
+    // std::string out_frame_id = "base_link";
+    // robot.clik_.toRobotBaseFrame(in, out, out_frame_id);
     
-    // ros::Rate loop_rate(30.0);
+    ros::Rate loop_rate(30.0);
 
-    // // if(askContinue("Avvio?")) {}
-    // // for(int i = 0; i < 20; i++) {
-    // //     robot.goTo(start, ros::Duration(15.0));
-    // //     //sleep(1);
-    // //     robot.goTo(prova, ros::Duration(15.0));
-    // //     //sleep(1);
-    // //     loop_rate.sleep();
-    // // }
-
-    // if(askContinue("Home")) {
-    //     robot.goTo(q0, ros::Duration(15.0));
-    //     ROS_INFO_STREAM("Posa di Home raggiunta");
+    // if(askContinue("Avvio?")) {}
+    // for(int i = 0; i < 20; i++) {
+    //     robot.goTo(start, ros::Duration(15.0));
+    //     //sleep(1);
+    //     robot.goTo(prova, ros::Duration(15.0));
+    //     //sleep(1);
+    //     loop_rate.sleep();
     // }
 
-    // if(askContinue("Posizione utile")) {
-    //     robot.goTo(start, ros::Duration(20.0));
-    //     ROS_INFO_STREAM("Posa di partenza raggiunta");
-    // }
+    if(askContinue("Home")) {
+        robot.goTo(q0, ros::Duration(15.0));
+        ROS_INFO_STREAM("Posa di Home raggiunta");
+    }
 
-    // // Creazione della griglia tramite il servizio
-    // srv.request.w = start.orientation.w;
-    // srv.request.x = start.orientation.x;
-    // srv.request.y = start.orientation.y;
-    // srv.request.z = start.orientation.z;
-    // srv.request.quota = quota;
-    // srv.request.x0 = start.position.x;
-    // srv.request.xf = xf;
-    // srv.request.y0 = start.position.y;
-    // srv.request.yf = yf;
-    // srv.request.divx = divx;sun_tactile_common::TactileStamped delta_v_nominale;
-    // srv.request.divy = divy;
-    // if(grid_client.call(srv)) { grid = srv.response.grid; ROS_INFO("Griglia ottenuta"); }
-    // else { ROS_INFO("Errore nella generazione della griglia"); }
+    if(askContinue("Posizione utile")) {
+        robot.goTo(start, ros::Duration(20.0));
+        ROS_INFO_STREAM("Posa di partenza raggiunta");
+    }
 
-    // // Calcolo dei coefficienti k per ogni cella
-    // int dim = 12;
-    // int rows = 6;
-    // int cols = 2;
-    // double k[dim];
-    // {
-    //     double h_min = -0.008, h_max = -0.006;
-    //     double h = h_max - h_min;
-    //     double v_max[dim] = {1.65, 1.58, 1.44, 1.41, 1.34, 1.13, 3.04, 1.07, 1.28, 1.17, 1.44, 1.03};
-    //     double v_min[dim] = {1, 1.04, 1, 1.06, 1, 0.95, 3.02, 0.90, 0.96, 1, 1.11, 0.86};
+    // Creazione della griglia tramite il servizio
+    srv.request.w = start.orientation.w;
+    srv.request.x = start.orientation.x;
+    srv.request.y = start.orientation.y;
+    srv.request.z = start.orientation.z;
+    srv.request.quota = quota;
+    srv.request.x0 = start.position.x;
+    srv.request.xf = xf;
+    srv.request.y0 = start.position.y;
+    srv.request.yf = yf;
+    srv.request.divx = divx;sun_tactile_common::TactileStamped delta_v_nominale;
+    srv.request.divy = divy;
+    if(grid_client.call(srv)) { grid = srv.response.grid; ROS_INFO("Griglia ottenuta"); }
+    else { ROS_INFO("Errore nella generazione della griglia"); }
 
-    //     for(int i = 0; i < dim; i++)
-    //         k[i] = h/(v_max[i]-v_min[i]);
-    // }
+    // Calcolo dei coefficienti k per ogni cella
+    int dim = 12;
+    int rows = 6;
+    int cols = 2;
+    double k[dim];
+    {
+        double h_min = -0.008, h_max = -0.006;
+        double h = h_max - h_min;
+        double v_max[dim] = {1.65, 1.58, 1.44, 1.41, 1.34, 1.13, 3.04, 1.07, 1.28, 1.17, 1.44, 1.03};
+        double v_min[dim] = {1, 1.04, 1, 1.06, 1, 0.95, 3.02, 0.90, 0.96, 1, 1.11, 0.86};
 
-    // // Generazione delle coordinate (xi,yi) in terna reference_taxel
-    // Eigen::Vector3d p_si[dim];
-    // {
-    //     int count = 0;
-    //     double refx = 0;
-    //     double refy = 0;
-    //     double offset = 0.0035;
+        for(int i = 0; i < dim; i++)
+            k[i] = h/(v_max[i]-v_min[i]);
+    }
 
-    //     for(int j = 0; j < rows; j++) {
-    //         refy = 0;
-    //         for(int k = 0; k < cols; k++) {
-    //             Eigen::Vector3d temp(refx,refy,0);
-    //             p_si[count] = temp;
-    //             refy = refy + offset;
-    //             count++;
-    //         }
-    //         refx = refx + offset;
-    //     }  
-    // }
+    // Generazione delle coordinate (xi,yi) in terna reference_taxel
+    Eigen::Vector3d p_si[dim];
+    {
+        int count = 0;
+        double refx = 0;
+        double refy = 0;
+        double offset = 0.0035;
 
-    // std::vector<geometry_msgs::Point32> PCL;
-    // std::vector<geometry_msgs::Point32> PCL2;
-    // geometry_msgs::Pose posa;
-    // sensor_msgs::PointCloud cluster;
-    // sensor_msgs::PointCloud centroide;
-    // cluster.header.frame_id = "base_link";
-    // centroide.header.frame_id = "base_link";
-    // double z, z0 = 0.271, deltaz = -0.0040;
-    // int contatore = 0;
-    // int count = 0;
+        for(int j = 0; j < rows; j++) {
+            refy = 0;
+            for(int k = 0; k < cols; k++) {
+                Eigen::Vector3d temp(refx,refy,0);
+                p_si[count] = temp;
+                refy = refy + offset;
+                count++;
+            }
+            refx = refx + offset;
+        }  
+    }
+
+    std::vector<geometry_msgs::Point32> PCL;
+    std::vector<geometry_msgs::Point32> PCL2;
+    geometry_msgs::Pose posa;
+    sensor_msgs::PointCloud cluster;
+    sensor_msgs::PointCloud centroide;
+    cluster.header.frame_id = "base_link";
+    centroide.header.frame_id = "base_link";
+    double z, z0 = 0.271, deltaz = -0.0040;
+    int contatore = 0;
+    int count = 0;
 
     // // Calcolo delle tensioni a riposo e della soglia da usare per riconoscere il cavo
-    int rows = 6, cols = 2;
     {
         int num_medio = 20;
         double sum_soglia[num_medio];

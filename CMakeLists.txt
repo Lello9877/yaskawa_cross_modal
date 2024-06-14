@@ -240,6 +240,12 @@ target_link_libraries(search_initial_points ${PCL_LIBRARIES})
 add_executable(direction src/direction.cpp)
 add_dependencies(direction ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(direction ${catkin_LIBRARIES})
+target_link_libraries(direction ${rosbag_LIBRARIES})
+
+add_executable(tactile_map src/tactile_map.cpp)
+add_dependencies(tactile_map ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(tactile_map ${catkin_LIBRARIES})
+target_link_libraries(tactile_map ${rosbag_LIBRARIES})
 
 #############
 ## Install ##
