@@ -8,14 +8,12 @@
 #include <sensor_msgs/PointCloud.h>
 #include <Eigen/Dense>
 #include <TooN/TooN.h>
+#include <std_msgs/Float64.h>
 
 bool toccato;
 std::vector<float> sensor_data(12);
 void getSensorData(const sun_tactile_common::TactileStamped& msg) {
     sensor_data = msg.tactile.data;
-	// sensor_data[6] = sensor_data[4];
-	// sensor_data[6] = sensor_data[7];
-	// sensor_data[6] = sensor_data[8];
 	double sum = 0;
 	sum = sensor_data[4] + sensor_data[7] + sensor_data[8];
 	sensor_data[6] = sum/3;
@@ -34,6 +32,7 @@ void getSensorData(const sun_tactile_common::TactileStamped& msg) {
 bool askContinue(const std::string &prompt = "")
 {
     char ans;
+    ros::Rate loop_rate(20);
     while(true)
     {
         std::cout << prompt << " - Press y/Y to continue [s/S to skip]: ";
@@ -41,6 +40,7 @@ bool askContinue(const std::string &prompt = "")
         if (ans == 'y' || ans == 'Y') return true;
         else if (ans == 's' || ans == 'S') return false;
         else std::cout << "Valore non ammesso, riprova" << std::endl;
+        loop_rate.sleep();
     }
 
     throw std::runtime_error("USER STOP!");
@@ -55,8 +55,11 @@ int main(int argc, char **argv)
 
     ros::Subscriber sub_volt = nh.subscribe("/tactile_voltage/rect", 1, getSensorData);
     ros::Publisher pub_volt = nh.advertise<sun_tactile_common::TactileStamped>("/measure", 1);
+    ros::Publisher pub_delta = nh.advertise<std_msgs::Float64>("/delta", 1);
     geometry_msgs::Pose end_effector, finger_reference;
     int rows = 6, cols = 2;
+    double delta = 0.0;
+    bool exit = false;
     const std::vector<double> q0 = {-1.6097532510757446, -0.34197139739990234, 0.0951523706316948, -0.42233070731163025, -0.016888976097106934, -1.4525935649871826, 0.03369557857513428};
     Eigen::MatrixXd mappa;
 	mappa.resize(12,3);
@@ -124,124 +127,168 @@ int main(int argc, char **argv)
         Q.normalize();
         posa.position.x = -0.10;
         posa.position.y = -0.40;
-        posa.position.z = 0.26; 
+        posa.position.z = 0.268; 
         posa.orientation.w = Q.w();
         posa.orientation.x = Q.x();
         posa.orientation.y = Q.y();
         posa.orientation.z = Q.z();
+        double z_limite = 0.240;
+        double risoluzione = 0.0010;
 
-        while(ros::ok())
+        while(ros::ok() && exit == false)
         {
-            
-            robot.goTo(posa, ros::Duration(12.0));
-            ros::spinOnce();
-            if(toccato)
+            while(posa.position.z > z_limite)
             {
 
-                int cnt = 0;
-                for(int i = 0; i < rows; i++)
+                robot.goTo(posa, ros::Duration(8.0));
+                ros::spinOnce();
+                if(toccato)
                 {
-                    for(int j = 0; j < cols; j++)
-                    {
-                        delta_v(i,j) = sensor_data[cnt];
-                        cnt++;
-                    }
+                    std::cout << "Toccato" << std::endl;
+                    // for(int j = 0; j < 15; j++)
+                    // {
+                    //     int count = 0;
+                    //     Eigen::VectorXd tensione;
+                    //     tensione.resize(sensor_data.size());
+                    //     for(int i = 0; i < sensor_data.size(); i++)
+                    //         tensione(i) = 0.0;
+
+                        posa.position.z -= 0.002;
+                        robot.goTo(posa, ros::Duration(2.0));
+                        ros::spinOnce();
+
+                        int cnt = 0;
+                        for(int i = 0; i < rows; i++)
+                        {
+                            for(int j = 0; j < cols; j++)
+                            {
+                                delta_v(i,j) = sensor_data[cnt];
+                                cnt++;
+                            }
+                        }
+
+                        // while(count < 50)
+                        // {
+                        //     ros::spinOnce();
+                        //     Eigen::VectorXd temp;
+                        //     temp.resize(sensor_data.size());
+                        //     for(int i = 0; i < sensor_data.size(); i++)
+                        //         temp(i) = sensor_data[i];
+                            
+                        //     tensione += temp;
+                        //     count++;
+                        //     std::cout << "Tensioni: " << std::endl << tensione << std::endl;
+                        //     // posa.position.z -= 0.0010;
+                        //     // robot.goTo(posa, ros::Duration(2.0));
+                        //     // askContinue("Acquisisco?");
+                        // }
+                        // tensione /= 50;
+                        // std::cout << "Media delle tensioni: " << std::endl << tensione << std::endl;
+                        // for(int i = 0; i < sensor_data.size(); i++)
+                        //     sensor_data[i] = tensione[i];
+
+                        // Detection of the main direction
+                        // h_sum = TooN::Zeros;
+                        // v_sum = TooN::Zeros;
+                        // h_vero = TooN::Zeros;
+                        // v_vero = TooN::Zeros;
+                        // double h = 0.0, v = 0.0;
+
+                        // for(int i = 0; i < rows; i++)
+                        //     h_vero += delta_v[i];
+                        // h_sum = h_vero/rows;
+
+                        // for(int i = 0; i < cols; i++)
+                        //     v_vero += delta_v.T()[i];
+                        // v_sum = v_vero/cols;
+                    
+                        // h = h_sum[0];
+                        // v = v_sum[0];
+                        // std::cout << "h: " << h << std::endl;
+                        // std::cout << "v: " << v << std::endl;
+
+                        // for(int i = 1; i < cols; i++)
+                        //     if(h_sum[i] < h) h = h_sum[i];							
+
+                        // for(int i = 1; i < rows; i++)
+                        //     if(v_sum[i] < v) v = v_sum[i];
+
+                        // if(h>v) std::cout << "Orizzontale" << std::endl;
+                        // else std::cout << "Verticale" << std::endl;
+
+                        for(int i = 0; i < p_si.size(); i++)
+                            p_si.at(i).z() = sensor_data.at(i);
+
+                        for(int i = 0; i < p_si.size(); i++)
+                        {
+                            mappa(i,0) = p_si.at(i).x();
+                            mappa(i,1) = p_si.at(i).y();
+                            mappa(i,2) = p_si.at(i).z();
+                        }
+
+                        std::cout << "Mappa Tattile: " << std::endl << mappa << std::endl;
+
+                        // SVD Eigen
+                        // double media = 0;
+                        // for(int i = 0; i < mappa.row(0).size(); i++)
+                        // {
+                        //     media = mappa.col(i).mean();
+                        //     std::cout << "Media colonna " << i << ": " << media << std::endl;
+                        //     for(int j = 0; j < mappa.col(0).size(); j++)
+                        //         mappa(j,i) = mappa(j,i) - media;
+                        // }
+
+                        // std::cout << "Mappa Tattile Normalizzata: " << std::endl << mappa << std::endl;
+
+                        // Eigen::JacobiSVD<Eigen::MatrixXd> svd(mappa, Eigen::ComputeThinU | Eigen::ComputeThinV);
+                        // Eigen::MatrixXd U = svd.matrixU();
+                        // Eigen::MatrixXd V = svd.matrixV();
+                        // Eigen::VectorXd S = svd.singularValues();
+                        // std::cout << "Valori Singolari: "<< std::endl << S << std::endl;
+
+                        // for(int i = 0; i < sensor_data.size(); i++)
+                        //     std::cout << sensor_data.at(i) << std::endl;
+
+                        // count = 1;
+                        // for i = 1:size(tempor)/2
+                        //     Zor(i,:) = tempor(count:count+1);
+                        //     Zvert(i,:) = tempver(count:count+1);
+                        //     Ztav(i,:) = temptav(count:count+1);
+                        //     count = count + 2;
+                        // end
+
+                        // Eigen::MatrixXd dV;
+                        // dV.resize(rows,cols);
+                        // int count = 0;
+                        // for(int i = 0; i < rows/2; i++)
+                        //     for(int j = 0; j < cols/2; j++)
+                        //     {
+                        //         dV(i,j) = p_si.at(count).z();
+                        //         count += 1;
+                        //     }
+                        
+                    
+                        sun_tactile_common::TactileStamped msg_volt;
+                        msg_volt.tactile.data = sensor_data;
+                        msg_volt.header.stamp = ros::Time::now();
+                        pub_volt.publish(msg_volt);
+                        posa.position.z = 0.268;
+                        std_msgs::Float64 delta_msgs;
+                        delta_msgs.data = delta;
+                        std::cout << "Tocco rilevato dopo " << delta/risoluzione << "delta" << std::endl;
+                        pub_delta.publish(delta_msgs);
+                        delta = 0.0;
+                        robot.goTo(posa, ros::Duration(4.0));
+                        if(askContinue("Continuare?")) { exit = false; }
+                        else { exit = true; break; }
+                    //     std::cout << "Iterazione " << j << ": " << std::endl;
+                    // }
+                    if(exit == true) break;
                 }
-
-                // Detection of the main direction
-                h_sum = TooN::Zeros;
-                v_sum = TooN::Zeros;
-                h_vero = TooN::Zeros;
-                v_vero = TooN::Zeros;
-                double h = 0.0, v = 0.0;
-
-                for(int i = 0; i < rows; i++)
-                    h_vero += delta_v[i];
-                h_sum = h_vero/rows;
-
-                for(int i = 0; i < cols; i++)
-                    v_vero += delta_v.T()[i];
-                v_sum = v_vero/cols;
-            
-                h = h_sum[0];
-                v = v_sum[0];
-                // std::cout << "h: " << h << std::endl;
-                // std::cout << "v: " << v << std::endl;
-
-                for(int i = 1; i < cols; i++)
-                    if(h_sum[i] < h) h = h_sum[i];							
-
-                for(int i = 1; i < rows; i++)
-                    if(v_sum[i] < v) v = v_sum[i];
-
-                if(h>v) std::cout << "Orizzontale" << std::endl;
-                else std::cout << "Verticale" << std::endl;
-
-                for(int i = 0; i < p_si.size(); i++)
-				    p_si.at(i).z() = sensor_data.at(i);
-
-                for(int i = 0; i < p_si.size(); i++)
-                {
-                    mappa(i,0) = p_si.at(i).x();
-                    mappa(i,1) = p_si.at(i).y();
-                    mappa(i,2) = p_si.at(i).z();
-                }
-
-                std::cout << "Mappa Tattile: " << std::endl << mappa << std::endl;
-
-                // SVD Eigen
-                // double media = 0;
-                // for(int i = 0; i < mappa.row(0).size(); i++)
-                // {
-                //     media = mappa.col(i).mean();
-                //     std::cout << "Media colonna " << i << ": " << media << std::endl;
-                //     for(int j = 0; j < mappa.col(0).size(); j++)
-                //         mappa(j,i) = mappa(j,i) - media;
-                // }
-
-                // std::cout << "Mappa Tattile Normalizzata: " << std::endl << mappa << std::endl;
-
-                // Eigen::JacobiSVD<Eigen::MatrixXd> svd(mappa, Eigen::ComputeThinU | Eigen::ComputeThinV);
-                // Eigen::MatrixXd U = svd.matrixU();
-                // Eigen::MatrixXd V = svd.matrixV();
-                // Eigen::VectorXd S = svd.singularValues();
-                // std::cout << "Valori Singolari: "<< std::endl << S << std::endl;
- 
-                // for(int i = 0; i < sensor_data.size(); i++)
-                //     std::cout << sensor_data.at(i) << std::endl;
-
-                // count = 1;
-                // for i = 1:size(tempor)/2
-                //     Zor(i,:) = tempor(count:count+1);
-                //     Zvert(i,:) = tempver(count:count+1);
-                //     Ztav(i,:) = temptav(count:count+1);
-                //     count = count + 2;
-                // end
-
-                // Eigen::MatrixXd dV;
-                // dV.resize(rows,cols);
-                // int count = 0;
-                // for(int i = 0; i < rows/2; i++)
-                //     for(int j = 0; j < cols/2; j++)
-                //     {
-                //         dV(i,j) = p_si.at(count).z();
-                //         count += 1;
-                //     }
-                
-                
-
-                sun_tactile_common::TactileStamped msg_volt;
-                msg_volt.tactile.data = sensor_data;
-                msg_volt.header.stamp = ros::Time::now();
-                pub_volt.publish(msg_volt);
-                posa.position.z += 0.015;
-                robot.goTo(posa, ros::Duration(4.0));
-                if(askContinue("Continuare?")) {}
-                else break;
-                
+                posa.position.z -= risoluzione;
+                delta += risoluzione;
+                toccato = false;
             }
-            posa.position.z -= 0.004;
-            toccato = false;
             loop_rate.sleep();
         }
     }

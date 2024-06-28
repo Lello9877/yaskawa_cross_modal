@@ -247,6 +247,12 @@ add_dependencies(tactile_map ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORT
 target_link_libraries(tactile_map ${catkin_LIBRARIES})
 target_link_libraries(tactile_map ${rosbag_LIBRARIES})
 
+add_executable(tactile_hessian src/tactile_hessian.cpp)
+add_dependencies(tactile_hessian ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(tactile_hessian ${catkin_LIBRARIES})
+target_link_libraries(tactile_hessian ${rosbag_LIBRARIES})
+target_link_libraries(tactile_hessian ${PCL_LIBRARIES})
+
 #############
 ## Install ##
 #############
