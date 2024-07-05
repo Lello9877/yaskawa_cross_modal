@@ -253,6 +253,18 @@ target_link_libraries(tactile_hessian ${catkin_LIBRARIES})
 target_link_libraries(tactile_hessian ${rosbag_LIBRARIES})
 target_link_libraries(tactile_hessian ${PCL_LIBRARIES})
 
+add_executable(convert_PCL src/convert_PCL.cpp)
+add_dependencies(convert_PCL ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(convert_PCL ${catkin_LIBRARIES})
+target_link_libraries(convert_PCL ${rosbag_LIBRARIES})
+target_link_libraries(convert_PCL ${PCL_LIBRARIES})
+
+add_executable(segmentation src/segmentation.cpp)
+add_dependencies(segmentation ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(segmentation ${catkin_LIBRARIES})
+target_link_libraries(segmentation ${rosbag_LIBRARIES})
+target_link_libraries(segmentation ${PCL_LIBRARIES})
+
 #############
 ## Install ##
 #############

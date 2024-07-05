@@ -63,21 +63,22 @@ int main(int argc, char **argv)
     sun::RobotMotionClient robot(ros::NodeHandle(nh, "motoman"));
     robot.waitForServers();
 
-    tf2_ros::Buffer tfBuffer;
-    tf2_ros::TransformListener tfListener(tfBuffer);
-    geometry_msgs::TransformStamped transform;
+    // tf2_ros::Buffer tfBuffer;
+    // tf2_ros::TransformListener tfListener(tfBuffer);
+    // geometry_msgs::TransformStamped transform;
+    
+
+    // try {
+    //     transform = tfBuffer.lookupTransform("tool0", "camera_depth_optical_frame", ros::Time(0), ros::Duration(3.0)); 
+    // }
+    // catch (tf2::TransformException &ex) {
+    //     ROS_WARN("%s",ex.what());
+    //     ros::Duration(1.0).sleep();
+    // }
+
+    // std::cout << transform;
+
     ros::Rate loop_rate(50.0);
-
-    try {
-        transform = tfBuffer.lookupTransform("tool0", "camera_depth_optical_frame", ros::Time(0), ros::Duration(3.0)); 
-    }
-    catch (tf2::TransformException &ex) {
-        ROS_WARN("%s",ex.what());
-        ros::Duration(1.0).sleep();
-    }
-
-    std::cout << transform;
-
     Eigen::Vector3d o_base_cam;
     Eigen::Vector3d p_cam_cam;
     Eigen::Vector3d p_base_cam;
@@ -102,12 +103,19 @@ int main(int argc, char **argv)
 
     // Configurazioni delle catture
     // In ordine da come seguono: spirale, cerchio
+    const std::vector<double> q_home = { -1.5594812631607056, -0.32599368691444397, 0.0, -0.13230204582214355, 0.031120063737034798, -1.3393893241882324, -0.022879714146256447 };
     const std::vector<double> q_retta = { -1.6433945894241333, -0.19776201248168945, 4.55637855338864e-05, 0.23550401628017426, 0.0029920218512415886, -1.5813273191452026, -0.006395920179784298 };
     const std::vector<double> q1 = { -1.6057740449905396, -0.3545166254043579, 0.0, -0.057136986404657364, -0.012833799235522747, -1.4666751623153687, 0.13985225558280945 };
     const std::vector<double> q_parabola = { -1.6755170822143555, -0.2627359628677368, -0.0002278189203934744, 0.14147554337978363, -0.010236663743853569, -1.5524402856826782, 0.023347707465291023 };
-    if(askContinue("Posizione utile"))
-        robot.goTo(q_retta, ros::Duration(20.0));
+    const std::vector<double> q_spirale = {};
+
+    if(askContinue("Home"))
+        robot.goTo(q_home, ros::Duration(20.0));
     ros::spinOnce();
+
+    // if(askContinue("Posa"))
+    //     robot.goTo(q_spirale, ros::Duration(10.0));
+    // ros::spinOnce();
 
     int count = 0;
     if(askContinue("Iniziare la cattura della point Cloud?")) 

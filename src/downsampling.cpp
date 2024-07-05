@@ -245,8 +245,10 @@ int main(int argc, char** argv)
     std::string path_cerchio_visuale = "/home/workstation2/ws_cross_modal/bags/PCL_visuale_cerchio_filtered.pcd";
     std::string path_parabola_visuale = "/home/workstation2/ws_cross_modal/bags/PCL_visuale_parabola_filtered.pcd";
     std::string path_retta_visuale = "/home/workstation2/ws_cross_modal/bags/PCL_visuale_retta_filtered.pcd";
+    std::string path = "/home/workstation2/ws_cross_modal/bags/PCL_centr2_spirale2_cen.pcd";
+    std::string path_visuale = "/home/workstation2/ws_cross_modal/bags/PCL_visuale_spirale2_grid.pcd";
 
-    if(pcl::io::loadPCDFile<pcl::PointXYZ>(path_retta_visuale, *cloud) != 0) { return -1; }
+    if(pcl::io::loadPCDFile<pcl::PointXYZ>(path_visuale, *cloud) != 0) { return -1; }
     
     // Ricerca x e y per definire la griglia
     double x_min, y_min, x_max, y_max;
@@ -279,7 +281,7 @@ int main(int argc, char** argv)
     // SPIRALE: divx = 6; divy = 8 OK
     // Assunzione: dmin = 0.04 (4 cm)
     int divx, divy;
-    double dmin = 0.04;
+    double dmin = 0.015;
     double div, sumx, sumy, sumz;
 
     div = (x_max-x_min)/dmin;
@@ -331,7 +333,8 @@ int main(int argc, char** argv)
     cloud_voxel->width = cloud_voxel->points.size();
     cloud_voxel->height = 1;
 
-    pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_visuale_retta_grid.pcd", *cloud_voxel);
+    // pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_centr2_spirale2_grid.pcd", *cloud_voxel);
+    pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_visuale_spirale2_grid.pcd", *cloud_voxel);
 
     // pcl::PointCloud<pcl::PointXYZ>::Ptr prova(new pcl::PointCloud<pcl::PointXYZ>);
     // int num = 5;
