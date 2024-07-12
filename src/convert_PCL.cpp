@@ -48,19 +48,17 @@ int main(int argc, char** argv)
     ros::init(argc,argv,"convert_PCL");
     ros::NodeHandle nh;
 
-    // NODO DA ELIMINARE: 38
+    sensor_msgs::PointCloud cloud_temp;
+    sensor_msgs::PointCloud2 cloud2;
+    cloud_temp = bag_read<sensor_msgs::PointCloud>("/home/workstation2/ws_cross_modal/bags/PCL_centr2_retta2.bag", "/pcl2");
+    sensor_msgs::convertPointCloudToPointCloud2(cloud_temp, cloud2);
+    bag_write<sensor_msgs::PointCloud2>("/home/workstation2/ws_cross_modal/bags/PCL_centr2_retta2.bag", "/pcl2", cloud2);
 
-    // sensor_msgs::PointCloud cloud_temp;
-    // sensor_msgs::PointCloud2 cloud2;
-    // cloud_temp = bag_read<sensor_msgs::PointCloud>("/home/workstation2/ws_cross_modal/bags/PCL_centr_spirale2_cen.bag", "/pcl2");
-    // sensor_msgs::convertPointCloudToPointCloud2(cloud_temp, cloud2);
-    // bag_write<sensor_msgs::PointCloud2>("/home/workstation2/ws_cross_modal/bags/PCL_centr2_spirale2_cen.bag", "/pcl2", cloud2);
-
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>());
-    if(pcl::io::loadPCDFile<pcl::PointXYZ>("/home/workstation2/ws_cross_modal/bags/prova.pcd", *cloud) != 0) { return -1; }
-    cloud->points.erase(cloud->points.begin()+77);
-    cloud->points.erase(cloud->points.begin()+71);
-    cloud->width = cloud->width - 2;
-    pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/prova2.pcd", *cloud);
+    // pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>());
+    // if(pcl::io::loadPCDFile<pcl::PointXYZ>("/home/workstation2/ws_cross_modal/bags/PCL_centr2_parabola2.pcd", *cloud) != 0) { return -1; }
+    // cloud->points.erase(cloud->points.begin()+44);
+    // // cloud->points.erase(cloud->points.begin()+21);
+    // cloud->width = cloud->width - 1;
+    // pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_centr2_parabola2.pcd", *cloud);
     return 0;
 }

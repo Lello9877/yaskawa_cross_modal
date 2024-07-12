@@ -134,10 +134,10 @@ void fkine_cb(const geometry_msgs::PoseStampedPtr &msg) {
 int main(int argc, char** argv)
 {
 
-    ros::init(argc,argv,"tactile_map");
+    ros::init(argc, argv, "tactile_hessian");
     ros::NodeHandle nh;
     sun::RobotMotionClient robot(ros::NodeHandle(nh, "motoman"));
-    // robot.waitForServers();
+    robot.waitForServers();
 
     ros::Subscriber sub_volt = nh.subscribe("/tactile_voltage/rect", 1, tactile_delta_cb);
     ros::Subscriber sub_fkine = nh.subscribe("/motoman/clik/fkine", 1, fkine_cb);
@@ -277,39 +277,26 @@ int main(int argc, char** argv)
             cont++;
         }
     }
-    // std::cout << coeff << std::endl << std::endl;
-    // std::cout << Eigen::poly_eval(coeff.row(0).reverse(), 0.2);
 
     for(int i = 0; i < grid.poses.size(); i++)
         grid.poses[i].position.z = z_start;
 
-    // std::cout << grid.poses.size() << std::endl << std::endl;
-    // for(int i = 0; i < grid.poses.size(); i++)
-    //     std::cout << grid.poses[i] << std::endl << std::endl;
+    for(int i = 1; i < divx; i = i+2)
+        std::reverse(grid.poses.begin() + i*divy, grid.poses.begin() + (i+1)*divy);
 
-    int count = 0;
     sensor_msgs::PointCloud centroide;
     centroide.header.frame_id = "base_link";
     if(askContinue("Avviare il ciclo di esplorazione?"))
     {
         for(int i = 0; i < grid.poses.size(); i++)
         {
-            count++;
             posa = grid.poses[i];
-            exit = false;
-            while(ros::ok() && posa.position.z > z_limite && exit == false)
+            while(ros::ok() && posa.position.z > z_limite)
             {
-                if(count > divy) 
-                {
-                    robot.goTo(posa, ros::Duration(15.0));
-                    count = 1;
-                }
-                else 
-                {
-                    posa.position.z -= delta;
-                    robot.goTo(posa, ros::Duration(tempo)); 
-                    ROS_INFO_STREAM("Posa raggiunta");
-                }
+ 
+                posa.position.z -= delta;
+                robot.goTo(posa, ros::Duration(tempo)); 
+                ROS_INFO_STREAM("Posa raggiunta");
 
                 ros::spinOnce();
                 if(toccato)
@@ -337,11 +324,7 @@ int main(int argc, char** argv)
 
                     /* Applicazione dell'equalizzazione */
                     for(int i = 0; i < coeff.rows(); i++)
-                    {  
-                        // std::cout << "Tensione di ingresso: " << p_si.at(i).z() << std::endl;
                         p_si.at(i).z() = Eigen::poly_eval(coeff.row(i).reverse(), p_si.at(i).z());
-                        // std::cout << "Displacement in uscita (equalizzato): " << p_si.at(i).z() << std::endl;
-                    }
 
                     Eigen::MatrixXd dS;
                     dS.resize(rows,cols);
@@ -354,14 +337,10 @@ int main(int argc, char** argv)
                             count += 1;
                         }
                     }
-                    // std::cout << dS << std::endl << std::endl << std::endl;
 
                     std::vector<Eigen::MatrixXd> G = grad(dS);
                     Eigen::MatrixXd gx = G.at(0);
                     Eigen::MatrixXd gy = G.at(1);
-
-                    // std::cout << "Gradiente lungo x:" << std::endl << G.at(0) << std::endl << std::endl;
-                    // std::cout << "Gradiente lungo y:" << std::endl << G.at(1) << std::endl << std::endl;
                     
                     std::vector<Eigen::MatrixXd> GX = grad(gx);
                     std::vector<Eigen::MatrixXd> GY = grad(gy);
@@ -370,11 +349,6 @@ int main(int argc, char** argv)
                     Eigen::MatrixXd gxy = GX.at(1);
                     Eigen::MatrixXd gyx = GY.at(0);
                     Eigen::MatrixXd gyy = GY.at(1);
-
-                    // std::cout << "Gradiente lungo xx:" << std::endl << gxx << std::endl << std::endl;
-                    // std::cout << "Gradiente lungo xy:" << std::endl << gxy << std::endl << std::endl;
-                    // std::cout << "Gradiente lungo yx:" << std::endl << gyx << std::endl << std::endl;
-                    // std::cout << "Gradiente lungo yy:" << std::endl << gyy << std::endl << std::endl;
 
                     Eigen::MatrixXd nH;
                     nH.resize(rows, cols);
@@ -415,7 +389,8 @@ int main(int argc, char** argv)
                         double sumx = 0.0, sumy = 0.0, sumv = 0.0;
                         
                         // Calcolo numeratore e denominatore della formula del centroide
-                        for(int i = 0; i < delta_v.size(); i++) {
+                        for(int i = 0; i < delta_v.size(); i++) 
+                        {
                             sumv += delta_v[i];
                             sumx += p_si[i].x()*delta_v[i];
                             sumy += p_si[i].y()*delta_v[i];
@@ -435,7 +410,6 @@ int main(int argc, char** argv)
                         centroide.header.stamp = ros::Time::now();
                         pcl_centr_pub.publish(centroide);
                         std::cout << "Centroide appena calcolato:" << std::endl << punto << std::endl;
-
                     }
                     else
                     {
@@ -445,11 +419,9 @@ int main(int argc, char** argv)
                     posa = grid.poses[i];
                     robot.goTo(posa, ros::Duration(tempo));
                     exit = true;
-
-                    // if(askContinue("Continuare?")) { /* posa.position.z = 0.268; robot.goTo(posa, ros::Duration(4.0)); exit = false;*/ }
-                    // else exit = true;
                 }
             }
+            loop_rate.sleep();
         }
         centroide.header.stamp = ros::Time::now();
         centr_pub.publish(centroide);
