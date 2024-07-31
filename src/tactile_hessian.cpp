@@ -12,93 +12,93 @@
 #include <rosbag/bag.h>
 #include <rosbag/view.h>
 #include "yaskawa_cross_modal/grid.h"
-#define foreach BOOST_FOREACH
+#include "yaskawa_cross_modal/utility.h"
+// #define foreach BOOST_FOREACH
 
-template <typename T>
-void bag_write(std::string path, std::string topic, T data) {
+// template <typename T>
+// void bag_write(std::string path, std::string topic, T data) {
 
-    rosbag::Bag bag;
-    bag.open(path, rosbag::bagmode::Write);
-    bag.write(topic,ros::Time::now(), data);
-    bag.close();
+//     rosbag::Bag bag;
+//     bag.open(path, rosbag::bagmode::Write);
+//     bag.write(topic,ros::Time::now(), data);
+//     bag.close();
 
-}
+// }
 
-template <typename T>
-T bag_read(std::string path, std::string topic) {
+// template <typename T>
+// T bag_read(std::string path, std::string topic) {
 
-    rosbag::Bag bag;
-    bag.open(path, rosbag::bagmode::Read);
-    rosbag::View view(bag, rosbag::TopicQuery(topic));
-    T val;
+//     rosbag::Bag bag;
+//     bag.open(path, rosbag::bagmode::Read);
+//     rosbag::View view(bag, rosbag::TopicQuery(topic));
+//     T val;
 
-    foreach(rosbag::MessageInstance const m, view)
-    {
-        boost::shared_ptr<T> pcl = m.instantiate<T>();
-        if(pcl != NULL) {
-            val = *pcl;
-        }
-    }
+//     foreach(rosbag::MessageInstance const m, view)
+//     {
+//         boost::shared_ptr<T> pcl = m.instantiate<T>();
+//         if(pcl != NULL) {
+//             val = *pcl;
+//         }
+//     }
 
-    bag.close();
-    return val;
+//     bag.close();
+//     return val;
 
-}
+// }
 
-bool askContinue(const std::string &prompt = "")
-{
-    char ans;
-    ros::Rate loop_rate(20);
-    while(true)
-    {
-        std::cout << prompt << " - Press y/Y to continue [s/S to skip]: ";
-        std::cin >> ans;
-        if (ans == 'y' || ans == 'Y') return true;
-        else if (ans == 's' || ans == 'S') return false;
-        else std::cout << "Valore non ammesso, riprova" << std::endl;
-        loop_rate.sleep();
-    }
+// bool askContinue(const std::string &prompt = "")
+// {
+//     char ans;
+//     ros::Rate loop_rate(20);
+//     while(true)
+//     {
+//         std::cout << prompt << " - Press y/Y to continue [s/S to skip]: ";
+//         std::cin >> ans;
+//         if (ans == 'y' || ans == 'Y') return true;
+//         else if (ans == 's' || ans == 'S') return false;
+//         else std::cout << "Valore non ammesso, riprova" << std::endl;
+//         loop_rate.sleep();
+//     }
 
-    throw std::runtime_error("USER STOP!");
-}
+//     throw std::runtime_error("USER STOP!");
+// }
 
-std::vector<Eigen::MatrixXd> grad(Eigen::MatrixXd dS)
-{
+// std::vector<Eigen::MatrixXd> grad(Eigen::MatrixXd dS)
+// {
 
-    std::vector<Eigen::MatrixXd> G;
-    Eigen::MatrixXd dX, dY;
-    dX.resize(dS.rows(), dS.cols());
-    dY.resize(dS.rows(), dS.cols());
+//     std::vector<Eigen::MatrixXd> G;
+//     Eigen::MatrixXd dX, dY;
+//     dX.resize(dS.rows(), dS.cols());
+//     dY.resize(dS.rows(), dS.cols());
 
-    for(int i = 0; i < dS.rows(); i++)
-    {
-        for(int j = 1; j < dS.cols()-1; j++)
-        {
-            dX(i,j) = 0.5*(dS(i,j+1) - dS(i,j-1));
-        }
-        dX(i,0) = dS(i,1) - dS(i,0);
-        dX(i,dS.cols()-1) = dS(i,dS.cols()-1) - dS(i,dS.cols()-2);
-    }
+//     for(int i = 0; i < dS.rows(); i++)
+//     {
+//         for(int j = 1; j < dS.cols()-1; j++)
+//         {
+//             dX(i,j) = 0.5*(dS(i,j+1) - dS(i,j-1));
+//         }
+//         dX(i,0) = dS(i,1) - dS(i,0);
+//         dX(i,dS.cols()-1) = dS(i,dS.cols()-1) - dS(i,dS.cols()-2);
+//     }
 
-    for(int j = 0; j < dS.cols(); j++)
-    {
-        for(int i = 1; i < dS.rows()-1; i++)
-        {
-            dY(i,j) = 0.5*(dS(i+1,j) - dS(i-1,j));
-        }
-        dY(0,j) = dS(1,j) - dS(0,j);
-        dY(dS.rows()-1,j) = dS(dS.rows()-1,j) - dS(dS.rows()-2,j);
-    }
+//     for(int j = 0; j < dS.cols(); j++)
+//     {
+//         for(int i = 1; i < dS.rows()-1; i++)
+//         {
+//             dY(i,j) = 0.5*(dS(i+1,j) - dS(i-1,j));
+//         }
+//         dY(0,j) = dS(1,j) - dS(0,j);
+//         dY(dS.rows()-1,j) = dS(dS.rows()-1,j) - dS(dS.rows()-2,j);
+//     }
 
-    G.push_back(dX);
-    G.push_back(dY);
-    return G;    
-}
+//     G.push_back(dX);
+//     G.push_back(dY);
+//     return G;    
+// }
 
 // Variabili globali
 bool toccato;
 std::vector<float> delta_v(12);
-std::vector<float> sensor_data(12);
 geometry_msgs::PoseStamped base_finger;
 
 // Callbacks
@@ -291,7 +291,8 @@ int main(int argc, char** argv)
         for(int i = 0; i < grid.poses.size(); i++)
         {
             posa = grid.poses[i];
-            while(ros::ok() && posa.position.z > z_limite)
+            exit = false;
+            while(ros::ok() && posa.position.z > z_limite && exit == false)
             {
  
                 posa.position.z -= delta;

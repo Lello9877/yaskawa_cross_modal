@@ -1,0 +1,14 @@
+# goal
+int64 rows
+int64 cols
+float64 x_min
+float64 y_min
+float64 x_max
+float64 y_max
+float64 dmin
+geometry_msgs/Pose start
+---
+# result
+bool result
+---
+# feedback

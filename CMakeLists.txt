@@ -22,12 +22,19 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_visual_tools
   sun_robot_ros
   sensor_msgs
-  wire_params_static
+  pcl_ros
+  pcl_conversions
+)
+
+include_directories(
+  ${catkin_INCLUDE_DIRS}
 )
 
 find_package(Eigen3 REQUIRED)
 find_package(rosbag REQUIRED)
 find_package(PCL 1.2 REQUIRED)
+find_package(Boost REQUIRED COMPONENTS system)
+# find_package(catkin REQUIRED COMPONENTS roscpp actionlib actionlib_msgs)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -75,10 +82,12 @@ add_service_files(
   grid.srv
 )
 
-## Generate actions in the 'action' folder
-## add_action_files(
-##   FILES
-## )
+# Generate actions in the 'action' folder
+add_action_files(
+  FILES
+  Tactile.action
+  Visual.action
+)
 
 ## Generate added messages and services with any dependencies listed here
  generate_messages(
@@ -176,6 +185,16 @@ catkin_package(
 #   ${catkin_LIBRARIES}
 # )
 
+# catkin_install_python(PROGRAMS 
+# scripts/dataset.py
+# DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+# )
+
+# catkin_install_python(PROGRAMS 
+# scripts/model.py
+# DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+# )
+
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
@@ -185,9 +204,9 @@ include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
-add_executable(task src/task.cpp)
-add_dependencies(task ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(task ${catkin_LIBRARIES})
+# add_executable(task src/task.cpp)
+# add_dependencies(task ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# target_link_libraries(task ${catkin_LIBRARIES})
 
 add_executable(joint_state src/joint_state.cpp)
 add_dependencies(joint_state ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
@@ -225,17 +244,17 @@ target_link_libraries(interpolation ${catkin_LIBRARIES})
 target_link_libraries(interpolation ${rosbag_LIBRARIES})
 target_link_libraries(interpolation ${PCL_LIBRARIES})
 
-add_executable(post_processing src/post_processing.cpp)
-add_dependencies(post_processing ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(post_processing ${catkin_LIBRARIES})
-target_link_libraries(post_processing ${rosbag_LIBRARIES})
-target_link_libraries(post_processing ${PCL_LIBRARIES})
+# add_executable(post_processing src/post_processing.cpp)
+# add_dependencies(post_processing ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# target_link_libraries(post_processing ${catkin_LIBRARIES})
+# target_link_libraries(post_processing ${rosbag_LIBRARIES})
+# target_link_libraries(post_processing ${PCL_LIBRARIES})
 
-add_executable(pre_processing src/pre_processing.cpp)
-add_dependencies(pre_processing ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(pre_processing ${catkin_LIBRARIES})
-target_link_libraries(pre_processing ${rosbag_LIBRARIES})
-target_link_libraries(pre_processing ${PCL_LIBRARIES})
+# add_executable(pre_processing src/pre_processing.cpp)
+# add_dependencies(pre_processing ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# target_link_libraries(pre_processing ${catkin_LIBRARIES})
+# target_link_libraries(pre_processing ${rosbag_LIBRARIES})
+# target_link_libraries(pre_processing ${PCL_LIBRARIES})
 
 add_executable(search_initial_points src/search_initial_points.cpp)
 add_dependencies(search_initial_points ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
@@ -271,6 +290,61 @@ target_link_libraries(segmentation ${catkin_LIBRARIES})
 target_link_libraries(segmentation ${rosbag_LIBRARIES})
 target_link_libraries(segmentation ${PCL_LIBRARIES})
 
+add_executable(recognize src/recognize.cpp)
+add_dependencies(recognize ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(recognize ${catkin_LIBRARIES})
+target_link_libraries(recognize ${rosbag_LIBRARIES})
+target_link_libraries(recognize ${PCL_LIBRARIES})
+
+add_executable(tactile_exploration src/ros_network/tactile_exploration.cpp)
+add_dependencies(tactile_exploration ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(tactile_exploration ${catkin_LIBRARIES})
+target_link_libraries(tactile_exploration ${rosbag_LIBRARIES})
+target_link_libraries(tactile_exploration ${PCL_LIBRARIES})
+
+add_executable(task src/ros_network/task.cpp)
+add_dependencies(task ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(task ${catkin_LIBRARIES})
+target_link_libraries(task ${rosbag_LIBRARIES})
+target_link_libraries(task ${PCL_LIBRARIES})
+
+add_executable(visual_exploration src/ros_network/visual_exploration.cpp)
+add_dependencies(visual_exploration ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(visual_exploration ${catkin_LIBRARIES})
+target_link_libraries(visual_exploration ${rosbag_LIBRARIES})
+target_link_libraries(visual_exploration ${PCL_LIBRARIES})
+
+add_executable(pre_processing src/ros_network/pre_processing.cpp)
+add_dependencies(pre_processing ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(pre_processing ${catkin_LIBRARIES})
+target_link_libraries(pre_processing ${rosbag_LIBRARIES})
+target_link_libraries(pre_processing ${PCL_LIBRARIES})
+
+add_executable(segmentator src/ros_network/segmentator.cpp)
+add_dependencies(segmentator ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(segmentator ${catkin_LIBRARIES})
+target_link_libraries(segmentator ${rosbag_LIBRARIES})
+target_link_libraries(segmentator ${PCL_LIBRARIES})
+
+add_executable(downsample src/ros_network/downsample.cpp)
+add_dependencies(downsample ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(downsample ${catkin_LIBRARIES})
+target_link_libraries(downsample ${rosbag_LIBRARIES})
+target_link_libraries(downsample ${PCL_LIBRARIES})
+
+add_executable(post_processing src/ros_network/post_processing.cpp)
+add_dependencies(post_processing ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(post_processing ${catkin_LIBRARIES})
+target_link_libraries(post_processing ${rosbag_LIBRARIES})
+target_link_libraries(post_processing ${PCL_LIBRARIES})
+
+add_executable(interpolator src/ros_network/interpolator.cpp)
+add_dependencies(interpolator ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(interpolator ${catkin_LIBRARIES})
+target_link_libraries(interpolator ${rosbag_LIBRARIES})
+target_link_libraries(interpolator ${PCL_LIBRARIES})
+
+ 
 #############
 ## Install ##
 #############

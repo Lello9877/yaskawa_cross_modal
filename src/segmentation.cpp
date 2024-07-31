@@ -68,9 +68,9 @@ void segmentazione(std::string path, pcl::PointCloud<pcl::PointXYZRGB>::Ptr clou
     // pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/PCL_visuale_merge.pcd", *concat);
     }
 
-    pcl::PointCloud <pcl::PointXYZRGB>::Ptr colored_cloud = clustering.getColoredCloud ();
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr colored_cloud = clustering.getColoredCloud ();
     pcl::visualization::CloudViewer viewer ("Cluster viewer");
-    viewer.showCloud (colored_cloud);
+    viewer.showCloud(colored_cloud);
 
     while (!viewer.wasStopped ())
         std::this_thread::sleep_for(100us);
@@ -82,9 +82,12 @@ int main(int argc, char** argv)
     ros::init(argc, argv, "segmentation");
     ros::NodeHandle nh;
 
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
-    std::string path = "/home/workstation2/ws_cross_modal/bags/bianco_cerchio_pre.pcd";
-    segmentazione(path, cloud);
+    for(int i = 19; i < 30; i++)
+    {
+        pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+        std::string path = "/home/workstation2/ws_cross_modal/bags/" + boost::to_string(i) + "_pre.pcd";
+        segmentazione(path, cloud);
+    }
 
     return 0;
 }
