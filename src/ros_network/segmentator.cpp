@@ -47,7 +47,7 @@ int main(int argc, char** argv)
         {
             // ...add all its points to a new cloud...
             pcl::PointCloud<pcl::PointXYZRGB>::Ptr cluster(new pcl::PointCloud<pcl::PointXYZRGB>);
-            for (std::vector<int>::const_iterator point = i->indices.begin(); point != i->indices.end(); point++)
+            for(std::vector<int>::const_iterator point = i->indices.begin(); point != i->indices.end(); point++)
                 cluster->points.push_back(visual_cloud->points[*point]);
             cluster->width = cluster->points.size();
             cluster->height = 1;
@@ -55,11 +55,11 @@ int main(int argc, char** argv)
 
             int count = 0;
 
-            for(int i = 0; i < cluster->points.size(); i++)
+            for(int j = 0; j < cluster->points.size(); j++)
             {
-                if(cluster->points.at(i).r < 175 && cluster->points.at(i).r > 130)
-                    if(cluster->points.at(i).g < 176 && cluster->points.at(i).g > 130)
-                        if(cluster->points.at(i).b < 176 && cluster->points.at(i).b > 130)
+                if(cluster->points.at(j).r < 176 && cluster->points.at(j).r > 130)
+                    if(cluster->points.at(j).g < 176 && cluster->points.at(j).g > 130)
+                        if(cluster->points.at(j).b < 176 && cluster->points.at(i).b > 130)
                             count++;
             }
 
@@ -73,20 +73,21 @@ int main(int argc, char** argv)
                 count_tavolo++;
             }
             else
-                std::cout << "CAVO" << std::endl;
-
-            // ...and save it to disk.
-            // if (cluster->points.size() <= 0)
-            //     break;
-            // std::cout << "Cluster " << currentClusterNum << " has " << cluster->points.size() << " points." << std::endl;
-            // std::string fileName = "/home/workstation2/ws_cross_modal/cluster" + boost::to_string(currentClusterNum) + ".pcd";
-            // pcl::io::savePCDFile(fileName, *cluster);
-            currentClusterNum++;
-            sensor_msgs::PointCloud2 cluster2;
-            pcl::toROSMsg(*cluster, cluster2);
-            cluster2.header.frame_id = "base_link";
-            cluster2.header.stamp = ros::Time::now();
-            pub_cluster.publish(cluster2);
+            {    
+                std::cout << "NON TAVOLO" << std::endl;
+                // ...and save it to disk.
+                // if (cluster->points.size() <= 0)
+                //     break;
+                // std::cout << "Cluster " << currentClusterNum << " has " << cluster->points.size() << " points." << std::endl;
+                // std::string fileName = "/home/workstation2/ws_cross_modal/cluster" + boost::to_string(currentClusterNum) + ".pcd";
+                // pcl::io::savePCDFile(fileName, *cluster);
+                currentClusterNum++;
+                sensor_msgs::PointCloud2 cluster2;
+                pcl::toROSMsg(*cluster, cluster2);
+                cluster2.header.frame_id = "base_link";
+                cluster2.header.stamp = ros::Time::now();
+                pub_cluster.publish(cluster2);
+            }
             visual_cloud->points.clear();
             visual_cloud->points.resize(0);
             loop_rate.sleep();
