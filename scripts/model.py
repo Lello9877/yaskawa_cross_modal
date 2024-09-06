@@ -64,7 +64,7 @@ else:
     num_points = maximum_cable
 
 # Percorso del file del modello addestrato
-model_path = "pointnet_model79.pth"
+model_path = "pointnet_model_augmented.pth"
 
 # Caricamento del modello
 model = PointNet()
@@ -79,7 +79,7 @@ path_cable = '/home/workstation2/ws_cross_modal/dataset/cable/'
 # new_pcd_path = path_not_cable + str((29)) + '.pcd'
 # print(new_pcd_path)
 
-paths = load_pcd_files(path_cable)
+paths = load_pcd_files(path_not_cable)
 
 # Caricamento e pre-processamento della nuova point cloud
 for file in range(len(paths)):

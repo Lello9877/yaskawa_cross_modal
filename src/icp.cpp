@@ -30,34 +30,34 @@ void icp(std::string source_path, std::string target_path, std::string dest_path
 	}
 	else std::cout << "ICP did not converge." << std::endl;
 
-    *transformed_cloud = *sourceCloud;
-    Eigen::Vector4f punto, punto_tf;
+    // *transformed_cloud = *sourceCloud;
+    // Eigen::Vector4f punto, punto_tf;
     
-    for(int i = 0; i < sourceCloud->points.size(); i++)
-    {
-        punto.x() = sourceCloud->points.at(i).x;
-        punto.y() = sourceCloud->points.at(i).y;
-        punto.z() = sourceCloud->points.at(i).z;
-        punto.w() = 1;
-        punto_tf = T*punto;
-        transformed_cloud->points.at(i).x = punto_tf.x();
-        transformed_cloud->points.at(i).y = punto_tf.y();
-        transformed_cloud->points.at(i).z = punto_tf.z();
-    }
+    // for(int i = 0; i < sourceCloud->points.size(); i++)
+    // {
+    //     punto.x() = sourceCloud->points.at(i).x;
+    //     punto.y() = sourceCloud->points.at(i).y;
+    //     punto.z() = sourceCloud->points.at(i).z;
+    //     punto.w() = 1;
+    //     punto_tf = T*punto;
+    //     transformed_cloud->points.at(i).x = punto_tf.x();
+    //     transformed_cloud->points.at(i).y = punto_tf.y();
+    //     transformed_cloud->points.at(i).z = punto_tf.z();
+    // }
 
-    std::string path = "/home/workstation2/ws_cross_modal/bags/PCL_visuale_" + forma + "2.pcd";
-    ros::Rate loop_rate(20);
-    pcl::io::savePCDFile(dest_path, *transformed_cloud);
-    pcl::visualization::CloudViewer viewer("Align");
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cluster(new pcl::PointCloud<pcl::PointXYZRGB>);
-    if(pcl::io::loadPCDFile<pcl::PointXYZRGB>(path, *cluster) != 0) { return; }
-	viewer.showCloud(transformed_cloud, "tattile");
-    viewer.showCloud(targetCloud, "visuale");
-	while (!viewer.wasStopped())
-	{
-        loop_rate.sleep();
-		// Do nothing but wait.
-	}
+    // // std::string path = "/home/workstation2/ws_cross_modal/bags/PCL_visuale_" + forma + "2.pcd";
+    // ros::Rate loop_rate(20);
+    // pcl::io::savePCDFile(dest_path, *transformed_cloud);
+    // pcl::visualization::CloudViewer viewer("Align");
+    // pcl::PointCloud<pcl::PointXYZRGB>::Ptr cluster(new pcl::PointCloud<pcl::PointXYZRGB>);
+    // if(pcl::io::loadPCDFile<pcl::PointXYZRGB>(path, *cluster) != 0) { return; }
+	// viewer.showCloud(transformed_cloud, "tattile");
+    // viewer.showCloud(targetCloud, "visuale");
+	// while (!viewer.wasStopped())
+	// {
+    //     loop_rate.sleep();
+	// 	// Do nothing but wait.
+	// }
 
 }
 
@@ -90,11 +90,19 @@ int main(int argc, char **argv)
     std::string cerchio = "cerchio";
     std::string parabola = "parabola";
     std::string retta = "retta";
+    std::string path1 = "/home/workstation2/ws_cross_modal/cluster8.pcd";
+    std::string path2 = "/home/workstation2/ws_cross_modal/cluster5.pcd";
+    std::string path3 = "/home/Desktop";
+    std::string dest_path = "/home/workstation2/ws_cross_modal/icp.pcd";
 
-    icp(path_spirale_tattile, path_spirale_visuale, path_spirale_tf, spirale, transformed_cloud);
-    icp(path_cerchio_tattile, path_cerchio_visuale, path_cerchio_tf, cerchio, transformed_cloud);
-    icp(path_parabola_tattile, path_parabola_visuale, path_parabola_tf, parabola, transformed_cloud);
-    icp(path_retta_tattile, path_retta_visuale, path_retta_tf, retta, transformed_cloud);
+
+    // icp(path_spirale_tattile, path_spirale_visuale, path_spirale_tf, spirale, transformed_cloud);
+    // icp(path_cerchio_tattile, path_cerchio_visuale, path_cerchio_tf, cerchio, transformed_cloud);
+    // icp(path_parabola_tattile, path_parabola_visuale, path_parabola_tf, parabola, transformed_cloud);
+    // icp(path_retta_tattile, path_retta_visuale, path_retta_tf, retta, transformed_cloud);
+    icp(path1, path2, path3, cerchio, transformed_cloud);
+    // pcl::io::savePCDFile(dest_path, *transformed_cloud);
+
 
     return 0;
 

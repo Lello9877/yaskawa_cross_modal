@@ -92,51 +92,51 @@ std::vector<Eigen::MatrixXd> grad(Eigen::MatrixXd dS)
     return G;    
 }
 
-void segmentazione(std::string path, pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_rgb)
-{
-    pcl::io::loadPCDFile(path, *cloud_rgb);
-    pcl::search::KdTree<pcl::PointXYZRGB>::Ptr kdtree(new pcl::search::KdTree<pcl::PointXYZRGB>);
-    kdtree->setInputCloud(cloud_rgb);
-    pcl::RegionGrowingRGB<pcl::PointXYZRGB> clustering;
-	clustering.setInputCloud(cloud_rgb);
-	clustering.setSearchMethod(kdtree);
-    clustering.setMinClusterSize(600);
-    clustering.setDistanceThreshold(10);
-    clustering.setPointColorThreshold(6);
-    clustering.setRegionColorThreshold(5);
-    std::vector <pcl::PointIndices> clusters;
-	clustering.extract(clusters);
+// void segmentazione(std::string path, pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_rgb)
+// {
+//     pcl::io::loadPCDFile(path, *cloud_rgb);
+//     pcl::search::KdTree<pcl::PointXYZRGB>::Ptr kdtree(new pcl::search::KdTree<pcl::PointXYZRGB>);
+//     kdtree->setInputCloud(cloud_rgb);
+//     pcl::RegionGrowingRGB<pcl::PointXYZRGB> clustering;
+// 	clustering.setInputCloud(cloud_rgb);
+// 	clustering.setSearchMethod(kdtree);
+//     clustering.setMinClusterSize(600);
+//     clustering.setDistanceThreshold(10);
+//     clustering.setPointColorThreshold(6);
+//     clustering.setRegionColorThreshold(5);
+//     std::vector <pcl::PointIndices> clusters;
+// 	clustering.extract(clusters);
 
-    // For every cluster...
-	int currentClusterNum = 1;
-	for (std::vector<pcl::PointIndices>::const_iterator i = clusters.begin(); i != clusters.end(); ++i)
-	{
-		// ...add all its points to a new cloud...
-		pcl::PointCloud<pcl::PointXYZRGB>::Ptr cluster(new pcl::PointCloud<pcl::PointXYZRGB>);
-		for (std::vector<int>::const_iterator point = i->indices.begin(); point != i->indices.end(); point++)
-			cluster->points.push_back(cloud_rgb->points[*point]);
-		cluster->width = cluster->points.size();
-		cluster->height = 1;
-		cluster->is_dense = true;
+//     // For every cluster...
+// 	int currentClusterNum = 1;
+// 	for (std::vector<pcl::PointIndices>::const_iterator i = clusters.begin(); i != clusters.end(); ++i)
+// 	{
+// 		// ...add all its points to a new cloud...
+// 		pcl::PointCloud<pcl::PointXYZRGB>::Ptr cluster(new pcl::PointCloud<pcl::PointXYZRGB>);
+// 		for (std::vector<int>::const_iterator point = i->indices.begin(); point != i->indices.end(); point++)
+// 			cluster->points.push_back(cloud_rgb->points[*point]);
+// 		cluster->width = cluster->points.size();
+// 		cluster->height = 1;
+// 		cluster->is_dense = true;
 
-		// ...and save it to disk.
-		if (cluster->points.size() <= 0)
-			break;
-		std::cout << "Cluster " << currentClusterNum << " has " << cluster->points.size() << " points." << std::endl;
-		std::string fileName = "/home/workstation2/ws_cross_modal/cluster" + boost::to_string(currentClusterNum) + ".pcd";
-		pcl::io::savePCDFile(fileName, *cluster);
+// 		// ...and save it to disk.
+// 		if (cluster->points.size() <= 0)
+// 			break;
+// 		std::cout << "Cluster " << currentClusterNum << " has " << cluster->points.size() << " points." << std::endl;
+// 		std::string fileName = "/home/workstation2/ws_cross_modal/cluster" + boost::to_string(currentClusterNum) + ".pcd";
+// 		pcl::io::savePCDFile(fileName, *cluster);
 
-		currentClusterNum++;
-	}
+// 		currentClusterNum++;
+// 	}
 
-    // pcl::PointCloud<pcl::PointXYZRGB>::Ptr colored_cloud = clustering.getColoredCloud ();
-    // pcl::visualization::CloudViewer viewer ("Cluster viewer");
-    // viewer.showCloud(colored_cloud);
+//     // pcl::PointCloud<pcl::PointXYZRGB>::Ptr colored_cloud = clustering.getColoredCloud ();
+//     // pcl::visualization::CloudViewer viewer ("Cluster viewer");
+//     // viewer.showCloud(colored_cloud);
 
-    // while (!viewer.wasStopped ())
-    //     std::this_thread::sleep_for(100us);
+//     // while (!viewer.wasStopped ())
+//     //     std::this_thread::sleep_for(100us);
 
-}
+// }
 
 template <typename T>
 int min(std::vector<T> vec) 

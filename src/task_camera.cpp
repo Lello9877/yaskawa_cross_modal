@@ -12,7 +12,7 @@
 
 sensor_msgs::PointCloud2 nuvola;
 geometry_msgs::PoseStamped pose_base_cam;
-bool start = false;
+bool start = true;
 
 // Callbacks
 void camera_cb(const sensor_msgs::PointCloud2Ptr &msg) { nuvola = *msg; }
@@ -70,10 +70,6 @@ int main(int argc, char **argv)
         robot.goTo(q_home, ros::Duration(20.0));
     ros::spinOnce();
 
-    while(ros::ok())
-    {
-
-
         if(askContinue("Iniziare la cattura della point Cloud?")) 
         {
             while(ros::ok() && start == true) 
@@ -121,9 +117,6 @@ int main(int argc, char **argv)
                 // const std::vector<double> q_parabola = { -1.6755170822143555, -0.2627359628677368, -0.0002278189203934744, 0.14147554337978363, -0.010236663743853569, -1.5524402856826782, 0.023347707465291023 };
                 // const std::vector<double> q_spirale = {};
 
-                if(askContinue("Home"))
-                    robot.goTo(q_home, ros::Duration(20.0));
-                ros::spinOnce();
                 int count = 0;
                 
                 // try {
@@ -159,7 +152,8 @@ int main(int argc, char **argv)
                 sensor_msgs::PointCloud2 cloud2;
                 //nuvola = bag_read<sensor_msgs::PointCloud2>("/home/workstation2/ws_cross_modal/bags/Prova.bag", "/camera/depth/color/points");
                 sensor_msgs::convertPointCloud2ToPointCloud(nuvola, cloud_temp);
-                for(int i = 0; i < cloud_temp.points.size(); i++) {
+                for(int i = 0; i < cloud_temp.points.size(); i++) 
+                {
                     p_cam_cam.x() = cloud_temp.points.at(i).x;
                     p_cam_cam.y() = cloud_temp.points.at(i).y;
                     p_cam_cam.z() = cloud_temp.points.at(i).z;
@@ -179,9 +173,6 @@ int main(int argc, char **argv)
             }
         }
         else {}
-
-        ros::spinOnce();
-    }
 
     return 0;
 }
