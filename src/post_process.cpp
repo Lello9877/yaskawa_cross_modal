@@ -20,15 +20,16 @@ double calcDistance(double x1, double y1, double z1, double x2, double y2, doubl
 int main(int argc, char **argv)
 {
 
-    ros::init(argc, argv, "post_processing");
+    ros::init(argc, argv, "post_process");
     ros::NodeHandle nh;
 
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>());
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_proc(new pcl::PointCloud<pcl::PointXYZ>());
-    if(pcl::io::loadPCDFile<pcl::PointXYZ>("/home/workstation2/ws_cross_modal/bags/PCL_centr2_spirale2_grid.pcd", *cloud) != 0) { return -1; }
+    if(pcl::io::loadPCDFile<pcl::PointXYZ>("/home/workstation2/ws_cross_modal/pcl_downsample3.pcd", *cloud) != 0) { return -1; }
     // if(pcl::io::loadPCDFile<pcl::PointXYZ>("/home/workstation2/ws_cross_modal/bags/PCL_visuale_spirale2_grid.pcd", *cloud) != 0) { return -1; }
     double distanza;
-    double dmin = 0.02;
+    // dmin = 0.02;
+    double dmin = 0.013;
     double soglia = dmin;
     std::vector<int> indice_vicino;
     cloud_proc->points.resize(cloud->points.size());
@@ -96,7 +97,7 @@ int main(int argc, char **argv)
     }
 
     cloud->width = cloud->points.size();
-    pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_centr2_spirale2_proc.pcd", *cloud);
+    pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/prova.pcd", *cloud);
     // pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_visuale_parabola2_proc.pcd", *cloud);
 
     return 0;

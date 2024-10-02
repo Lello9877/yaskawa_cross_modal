@@ -7,11 +7,17 @@
 #include "yaskawa_cross_modal/grid.h"
 #include "sun_tactile_common/TactileStamped.h"
 #include <sensor_msgs/PointCloud.h>
+#include <sensor_msgs/point_cloud_conversion.h>
 #include <std_msgs/Float32MultiArray.h>
 #include <Eigen/Dense>
 #include <unsupported/Eigen/Polynomials>
 #include <rosbag/bag.h>
 #include <rosbag/view.h>
+#include <pcl/io/pcd_io.h>
+#include <pcl/visualization/cloud_viewer.h>
+#include <pcl_conversions/pcl_conversions.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
 #include "yaskawa_cross_modal/grid.h"
 #include "yaskawa_cross_modal/utility.h"
 #include "yaskawa_cross_modal/TactileAction.h"
@@ -76,11 +82,13 @@ public:
         robot.waitForServers();
         bool success = true;
 
-        ros::Subscriber sub_volt = nh.subscribe("/tactile_voltage/rect", 1, tactile_delta_cb);
-        ros::Subscriber sub_fkine = nh.subscribe("/motoman/clik/fkine", 1, fkine_cb);
-        ros::Publisher pub_volt = nh.advertise<sun_tactile_common::TactileStamped>("/measure", 1);
-        ros::Publisher pcl_centr_pub = nh.advertise<sensor_msgs::PointCloud>("/pcl2", 1);
-        ros::Publisher centr_pub = nh.advertise<sensor_msgs::PointCloud>("/tactile_cloud", 1);
+        std::cout << std::endl << "TACTILE EXPLORATION" << std::endl;
+
+        ros::Subscriber sub_volt = nh.subscribe("/tactile_voltage/rect", 10, tactile_delta_cb);
+        ros::Subscriber sub_fkine = nh.subscribe("/motoman/clik/fkine", 10, fkine_cb);
+        ros::Publisher pub_volt = nh.advertise<sun_tactile_common::TactileStamped>("/measure", 10);
+        ros::Publisher pcl_centr_pub = nh.advertise<sensor_msgs::PointCloud>("/pcl2", 10);
+        ros::Publisher centr_pub = nh.advertise<sensor_msgs::PointCloud2>("/tactile_cloud", 10);
         yaskawa_cross_modal::grid srv;
         geometry_msgs::PoseArray grid;
         ros::ServiceClient grid_client = nh.serviceClient<yaskawa_cross_modal::grid>("grid_srv");
@@ -117,7 +125,7 @@ public:
         finger_reference.orientation.y = quat.y();
         finger_reference.orientation.z = quat.z();
         robot.clik_.set_end_effector(end_effector);
-        ros::Rate loop_rate(30.0);
+        ros::Rate loop_rate(30);
 
         // // Generazione delle coordinate (xi,yi) in terna reference taxel
         std::vector<Eigen::Vector3d> p_si;
@@ -215,7 +223,7 @@ public:
         for(int i = 0; i < grid.poses.size(); i++)
         {
             grid.poses[i].position.z = z_start;
-            std::cout << grid.poses[i] << std::endl << std::endl;
+            // std::cout << grid.poses[i] << std::endl << std::endl;
         }
 
         for(int i = 1; i < divx; i = i+2)
@@ -228,10 +236,9 @@ public:
             for(int i = 0; i < grid.poses.size(); i++)
             {
 
-                if (as_.isPreemptRequested() || !ros::ok())
+                if(as_.isPreemptRequested() || !ros::ok())
                 {
                     ROS_INFO("%s: Preempted", action_name_.c_str());
-                    // set the action state to preempted
                     as_.setPreempted();
                     success = false;
                     break;
@@ -244,7 +251,7 @@ public:
     
                     posa.position.z -= delta;
                     robot.goTo(posa, ros::Duration(tempo)); 
-                    ROS_INFO_STREAM("Posa raggiunta");
+                    // ROS_INFO_STREAM("Posa raggiunta");
 
                     ros::spinOnce();
                     if(toccato)
@@ -263,7 +270,7 @@ public:
                             mappa(i,1) = p_si.at(i).y();
                             mappa(i,2) = p_si.at(i).z();
                         }
-                        std::cout << "Mappa Tattile: " << std::endl << mappa << std::endl << std::endl;
+                        // std::cout << "Mappa Tattile: " << std::endl << mappa << std::endl << std::endl;
 
                         sun_tactile_common::TactileStamped msg_volt;
                         msg_volt.tactile.data = delta_v;
@@ -315,13 +322,13 @@ public:
 
                         double indicatore = nH.norm();
 
-                        std::cout << nH << std::endl << std::endl;
+                        // std::cout << nH << std::endl << std::endl;
                         std::cout << "INDICATORE: " << indicatore << std::endl;
 
-                        if(indicatore > 0.0009)
+                        if(indicatore > 0.00115)
                         {
                             std::cout << "CAVO" << std::endl;
-                            std::cout << posa.position;
+                            // std::cout << posa.position;
                             Eigen::Matrix4d T_base_reference, T_base_finger, T_finger_reference;
                             Eigen::Quaterniond q_finger_reference(finger_reference.orientation.w, finger_reference.orientation.x, finger_reference.orientation.y, finger_reference.orientation.z);
                             q_finger_reference.normalize();
@@ -348,7 +355,7 @@ public:
                             punto.x = sumx/sumv;
                             punto.y = sumy/sumv;
                             punto.z = 0;
-                            std::cout << punto << std::endl;
+                            // std::cout << punto << std::endl;
                             Eigen::Vector3d point(punto.x, punto.y, punto.z);
                             p_b_s_centr = o_b_s + R_b_s * point;
                             punto.x = p_b_s_centr.x();
@@ -357,11 +364,11 @@ public:
                             centroide.points.push_back(punto);
                             centroide.header.stamp = ros::Time::now();
                             pcl_centr_pub.publish(centroide);
-                            std::cout << "Centroide appena calcolato:" << std::endl << punto << std::endl;
+                            // std::cout << "Centroide appena calcolato:" << std::endl << punto << std::endl;
                         }
                         else
                         {
-                            std::cout << "TAVOLO" << std::endl;
+                            // std::cout << "TAVOLO" << std::endl;
                         }
 
                         posa = grid.poses[i];
@@ -373,10 +380,21 @@ public:
             }
             if(success)
             {
-                centroide.header.stamp = ros::Time::now();
-                centr_pub.publish(centroide);
+                
+                sensor_msgs::PointCloud2 centroide2;
+                sensor_msgs::convertPointCloudToPointCloud2(centroide, centroide2);
+                centroide2.header.frame_id = "base_link";
+                centroide2.header.stamp = ros::Time::now();
+                centr_pub.publish(centroide2);
                 ROS_INFO("%s: Succeeded", action_name_.c_str());
                 as_.setSucceeded(result_);
+                pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
+                sensor_msgs::PointCloud2 cloud2;
+                sensor_msgs::convertPointCloudToPointCloud2(centroide, cloud2);
+                pcl::fromROSMsg(cloud2, *cloud);
+                cloud->width = cloud->points.size();
+                cloud->height = 1;
+                pcl::io::savePCDFile("/home/workstation2/pcl_tattile.pcd", *cloud);
             }
         }
     }

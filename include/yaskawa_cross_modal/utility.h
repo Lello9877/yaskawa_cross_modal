@@ -168,8 +168,9 @@ double euclideanDistance(double x1, double y1, double z1, double x2, double y2, 
 }
 
 typedef Eigen::Spline<float, 3> Spline3d;
-void spline(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::PointXYZ>::Ptr cloudInterpolated, int num_points)
+void spline(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloudInterpolated, int num_points)
 {
+    int order = 3;
     std::vector<Eigen::Vector3d> waypoints;
     for (int i = 0; i < cloud->points.size(); i++)
     {
@@ -185,24 +186,34 @@ void spline(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::Poin
         row_index++;
     }
 
-    Spline3d spline = Eigen::SplineFitting<Spline3d>::Interpolate(points, 3);
-    float time_ = 0;
-    *cloudInterpolated = *cloud;
-    cloudInterpolated->points.resize(cloud->points.size() + num_points);
-    cloudInterpolated->width = cloud->points.size() + num_points;
+    if(points.cols() <= 1)
+        std::cout << "La point Cloud ha solo un punto, impossibile applicare la spline" << std::endl;
 
-    for (int i = cloud->points.size(); i < cloud->points.size() + num_points; i++)
+    else
     {
-        time_ += 1.0 / (num_points * 1.0);
-        Eigen::VectorXf values = spline(time_);
-        // std::cout << values << std::endl << std::endl;
-        cloudInterpolated->points.at(i).x = values.x();
-        cloudInterpolated->points.at(i).y = values.y();
-        cloudInterpolated->points.at(i).z = values.z();
+
+        while(!(points.cols() > order))
+            order--;
+        
+        Spline3d spline = Eigen::SplineFitting<Spline3d>::Interpolate(points, order);
+        float time_ = 0;
+        *cloudInterpolated = *cloud;
+        cloudInterpolated->points.resize(cloud->points.size() + num_points);
+        cloudInterpolated->width = cloud->points.size() + num_points;
+
+        for (int i = cloud->points.size(); i < cloud->points.size() + num_points; i++)
+        {
+            time_ += 1.0 / (num_points * 1.0);
+            Eigen::VectorXf values = spline(time_);
+            // std::cout << values << std::endl << std::endl;
+            cloudInterpolated->points.at(i).x = values.x();
+            cloudInterpolated->points.at(i).y = values.y();
+            cloudInterpolated->points.at(i).z = values.z();
+        }
     }
 }
 
-void sort_points(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, int indice_old, int indice_new, pcl::PointCloud<pcl::PointXYZ>::Ptr sortedCloud)
+void sort_points(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, int indice_old, int indice_new, pcl::PointCloud<pcl::PointXYZRGB>::Ptr sortedCloud)
 {
     Eigen::Vector3d new_point, old_point, temp_point, temp_diff, differenza;
     int count, sorted_count;
@@ -252,14 +263,14 @@ void sort_points(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, int indice_old, int 
                 distanza = euclideanDistance(new_point.x(), new_point.y(), new_point.z(), temp_point.x(), temp_point.y(), temp_point.z());
                 if(distanza < 0.06)
                 {
-                    std::cout << "La distanza candidata " << distanza << " è associata al punto di indice " << i << std::endl;
+                    // std::cout << "La distanza candidata " << distanza << " è associata al punto di indice " << i << std::endl;
                     punto_candidato.push_back(i);
                     distance.push_back(distanza);
                     temp_diff = temp_point - new_point;
                     prod = differenza.x() * temp_diff.x() + differenza.y() * temp_diff.y() + differenza.z() * temp_diff.z();
                     angolo = acos(prod/(differenza.norm() * temp_diff.norm()));
                     angle.push_back(angolo);
-                    std::cout << "Angolo associato al punto di indice " << i << ": " << angolo << std::endl;
+                    // std::cout << "Angolo associato al punto di indice " << i << ": " << angolo << std::endl;
                 }
             }
         }
@@ -277,7 +288,7 @@ void sort_points(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, int indice_old, int 
                     // 0.8, giocando con quella precedente: 1.2
                     if(angle.at(l) < 1)
                     {
-                        std::cout << "Sto aggiungendo il punto di indice " << punto_candidato.at(l) << std::endl;
+                        // std::cout << "Sto aggiungendo il punto di indice " << punto_candidato.at(l) << std::endl;
                         indice_ordinato.push_back(punto_candidato.at(l));
                         sortedCloud->points.push_back(cloud->points.at(punto_candidato.at(l)));
                         trovato = true;
@@ -296,7 +307,7 @@ void sort_points(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, int indice_old, int 
             new_point.z() = sortedCloud->points.at(sorted_count-1).z;
         }
 
-        std::cout << "contatore: " << count << std::endl << std::endl;
+        // std::cout << "contatore: " << count << std::endl << std::endl;
         distance.clear();
         angle.clear();
         punto_candidato.clear();

@@ -1,6 +1,4 @@
 #include <ros/ros.h>
-#include <rosbag/bag.h>
-#include <rosbag/view.h>
 #include <Eigen/Core>
 #include <unsupported/Eigen/Splines>
 #include <pcl/point_types.h>
@@ -9,36 +7,41 @@
 #include <sensor_msgs/point_cloud_conversion.h>
 #include "yaskawa_cross_modal/utility.h"
 
-pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
 
-void merge_cable_cb(const sensor_msgs::PointCloud2Ptr &msg)
+pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+void postprocessed_cloud_cb(const sensor_msgs::PointCloud2Ptr &msg)
 {
     sensor_msgs::PointCloud2 nuvola = *msg;
     pcl::fromROSMsg(nuvola, *cloud);
 }
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
     ros::init(argc, argv, "interpolator");
     ros::NodeHandle nh;
-
+    ros::Subscriber sub_cloud_proc = nh.subscribe("/cloud_postprocessed", 1, postprocessed_cloud_cb);
+    ros::Publisher pub_occlusione = nh.advertise<sensor_msgs::PointCloud2>("/occlusion", 1);
+    ros::Publisher pub_cloud_interp = nh.advertise<sensor_msgs::PointCloud2>("/cloud_interpolated", 1);
     ros::Rate loop_rate(30);
-    ros::Subscriber sub_interpolated = nh.subscribe("/pcl_merge", 10, merge_cable_cb);
     int count = 0;
-
 
     while(ros::ok())
     {
         ros::spinOnce();
-        if(cloud->size() != 0)
+        if(cloud->points.size() != 0)
         {
             std::cout << std::endl << "INTERPOLATOR" << std::endl;
             pcl::PointCloud<pcl::PointXYZRGB>::Ptr sortedCloud(new pcl::PointCloud<pcl::PointXYZRGB>());
             pcl::PointCloud<pcl::PointXYZRGB>::Ptr interpolatedCloud(new pcl::PointCloud<pcl::PointXYZRGB>());
             pcl::PointCloud<pcl::PointXYZRGB>::Ptr tempCloud(new pcl::PointCloud<pcl::PointXYZRGB>());
+            pcl::PointCloud<pcl::PointXYZRGB>::Ptr tempInterpolatedCloud(new pcl::PointCloud<pcl::PointXYZRGB>());
             int indice_old, indice_new;
             Eigen::Vector3d differenza;
-            int indice_iniziale = 0;
+            std::string path_visuale = "/home/workstation2/ws_cross_modal/bags/PCL_visuale_parabola2_proc.pcd";
+            std::string path_tattile = "/home/workstation2/ws_cross_modal/bags/PCL_centr2_spirale2_proc.pcd";
+
+            // Porzione di codice per la scelta di una direzione
+            int indice_iniziale = 0, count = 0;
             double distanza, soglia;
             double prod;
             double angolo;
@@ -103,6 +106,12 @@ int main(int argc, char** argv)
 
             std::cout << "Old: " << indice_old << std::endl << "New: " << indice_new << std::endl;
             sort_points(cloud, indice_old, indice_new, tempCloud);
+            // std::cout << std::endl << "Sto verificando se ho un cavo oppure una occlusione..." << std::endl;
+            // std::cout << "Dimensione Nuvola Post Processata: " << cloud->points.size() << std::endl << "Dimensione nuvola ordinata: " << tempCloud->points.size() << std::endl;
+
+                // spline(tempCloud, tempInterpolatedCloud, 30);
+                // pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_centr2_spirale2_esp.pcd", *tempInterpolatedCloud);
+                // pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_visuale_parabola2_esp.pcd", *tempInterpolatedCloud);
 
             Eigen::Vector3d point_old, point_new, point_temp;
             point_old.x() = tempCloud->points.at(tempCloud->points.size()-1).x;
@@ -122,14 +131,38 @@ int main(int argc, char** argv)
             }
 
             std::cout << "Old: " << indice_old << std::endl << "New: " << indice_new << std::endl;
+
             sort_points(cloud, indice_old, indice_new, sortedCloud);
-            spline(sortedCloud, interpolatedCloud, 150);
-            pcl::io::savePCDFile("/home/workstation2/interpolato" + boost::to_string(count) + ".pcd", *interpolatedCloud);
+            std::cout << std::endl << "Sto verificando se ho un cavo oppure una occlusione..." << std::endl;
+            std::cout << "Dimensione Nuvola Post Processata: " << cloud->points.size() << std::endl << "Dimensione nuvola ordinata: " << sortedCloud->points.size() << std::endl;
+            if(cloud->points.size() - sortedCloud->points.size() >= 3)
+            {
+                std::cout << "Altolà, questa è un'occlusione!!!" << std::endl;
+                sensor_msgs::PointCloud2 occlusione;
+                pcl::toROSMsg(*cloud, occlusione);
+                occlusione.header.frame_id = "base_link";
+                occlusione.header.stamp = ros::Time::now();
+                pub_occlusione.publish(occlusione);
+            }
+            else
+            {
+                spline(sortedCloud, interpolatedCloud, 150);
+                interpolatedCloud->width = interpolatedCloud->points.size();
+                interpolatedCloud->height = 1;
+                pcl::io::savePCDFile("/home/workstation2/pcl_interpolata" + boost::to_string(count) + ".pcd", *interpolatedCloud);
+                sensor_msgs::PointCloud2 interpolata;
+                pcl::toROSMsg(*interpolatedCloud, interpolata);
+                interpolata.header.frame_id = "base_link";
+                interpolata.header.stamp = ros::Time::now();
+                pub_cloud_interp.publish(interpolata);
+                count++;
+                // pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_visuale_parabola2_spline.pcd", *interpolatedCloud);
+                // pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_centr2_spirale2_spline.pcd", *interpolatedCloud);
+            }
             cloud->points.clear();
             cloud->points.resize(0);
-            count++;
+            loop_rate.sleep();
         }
-        loop_rate.sleep();
     }
 
     return 0;

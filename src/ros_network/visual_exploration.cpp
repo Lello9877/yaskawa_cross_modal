@@ -48,14 +48,16 @@ public:
 
     void executeCB(const yaskawa_cross_modal::VisualGoalConstPtr &goal)
     {
-        ros::Subscriber sub_camera = nh.subscribe("/camera/depth/color/points", 1, camera_cb);
-        ros::Subscriber sub_fkine = nh.subscribe("/motoman/clik/fkine", 1, fkine_cb);
-        ros::Publisher pub_cloud2 = nh.advertise<sensor_msgs::PointCloud2>("/visual_cloud", 1);
-        ros::Publisher pub_cloud_bag = nh.advertise<sensor_msgs::PointCloud2>("/cloud2_camera", 1);
-        ros::Rate loop_rate(50.0);
+        ros::Subscriber sub_camera = nh.subscribe("/camera/depth/color/points", 10, camera_cb);
+        ros::Subscriber sub_fkine = nh.subscribe("/motoman/clik/fkine", 10, fkine_cb);
+        ros::Publisher pub_cloud2 = nh.advertise<sensor_msgs::PointCloud2>("/visual_cloud", 10);
+        ros::Publisher pub_cloud_bag = nh.advertise<sensor_msgs::PointCloud2>("/cloud2_camera", 10);
+        ros::Rate loop_rate(30);
         sun::RobotMotionClient robot(ros::NodeHandle(nh, "motoman"));
         robot.waitForServers();
         bool success = true;
+        
+        std::cout << std::endl << "VISUAL EXPLORATION" << std::endl;
 
         geometry_msgs::Pose end_effector;
         end_effector.position.x = 0.102695;
@@ -96,124 +98,121 @@ public:
 
         if(askContinue("Iniziare la cattura della point Cloud?")) 
         {
-            while(ros::ok() && t.toSec() <= goal->duration) 
+
+            if (as_.isPreemptRequested() || !ros::ok())
             {
-
-                if (as_.isPreemptRequested() || !ros::ok())
-                {
-                    ROS_INFO("%s: Preempted", action_name_.c_str());
-                    // set the action state to preempted
-                    as_.setPreempted();
-                    success = false;
-                    break;
-                }
-
-                t = ros::Time::now() - t0;
-
-                // tf2_ros::Buffer tfBuffer;
-                // tf2_ros::TransformListener tfListener(tfBuffer);
-                // geometry_msgs::TransformStamped transform;
-
-                // try {
-                //     transform = tfBuffer.lookupTransform("tool0", "camera_depth_optical_frame", ros::Time(0), ros::Duration(3.0)); 
-                // }
-                // catch (tf2::TransformException &ex) {
-                //     ROS_WARN("%s",ex.what());
-                //     ros::Duration(1.0).sleep();
-                // }
-
-                // std::cout << transform;
-                
-                // try {
-                //     transform = tfBuffer.lookupTransform("base_link", "camera_depth_optical_frame", ros::Time(0), ros::Duration(3.0)); 
-                // }
-                // catch (tf2::TransformException &ex) {
-                //     ROS_WARN("%s",ex.what());
-                //     ros::Duration(1.0).sleep();
-                // }
-
-                //std::cout << transform << std::endl;
-
-                Eigen::Vector3d o_base_cam;
-                Eigen::Vector3d p_cam_cam;
-                Eigen::Vector3d p_base_cam;
-                Eigen::Matrix3d R_base_cam;
-                Eigen::Quaterniond q;
-
-                // o_base_cam.x() = transform.transform.translation.x;
-                // o_base_cam.y() = transform.transform.translation.y;
-                // o_base_cam.z() = transform.transform.translation.z;
-                // q.w() = transform.transform.rotation.w;
-                // q.x() = transform.transform.rotation.x;
-                // q.y() = transform.transform.rotation.y;
-                // q.z() = transform.transform.rotation.z;
-                // q.normalize();
-                // R_base_cam = q.toRotationMatrix();
-                o_base_cam.x() = pose_base_cam.pose.position.x;
-                o_base_cam.y() = pose_base_cam.pose.position.y;
-                o_base_cam.z() = pose_base_cam.pose.position.z;
-                q.w() = pose_base_cam.pose.orientation.w;
-                q.x() = pose_base_cam.pose.orientation.x;
-                q.y() = pose_base_cam.pose.orientation.y;
-                q.z() = pose_base_cam.pose.orientation.z;
-                q.normalize();
-                R_base_cam = q.toRotationMatrix();
-
-                // sensor_msgs::convertPointCloud2ToPointCloud(nuvola, cloud_temp);
-                pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_temp(new pcl::PointCloud<pcl::PointXYZRGB>);
-                sensor_msgs::PointCloud2 cloud2;
-                pcl::fromROSMsg(nuvola, *cloud_temp);
-                for(int i = 0; i < cloud_temp->points.size(); i++) 
-                {
-                    p_cam_cam.x() = cloud_temp->points.at(i).x;
-                    p_cam_cam.y() = cloud_temp->points.at(i).y;
-                    p_cam_cam.z() = cloud_temp->points.at(i).z;
-                    p_base_cam = o_base_cam + R_base_cam * p_cam_cam;
-                    cloud_temp->points.at(i).x = p_base_cam.x();
-                    cloud_temp->points.at(i).y = p_base_cam.y();
-                    cloud_temp->points.at(i).z = p_base_cam.z();
-                }
-
-                // int dim_media = cloud_media->points.size();
-                // int dim_temp = cloud_temp->points.size();
-                // int actual_dim;
-
-                // std::cout << "Iterazione " << count << std::endl;
-
-                // std::cout << "dim_media PRIMA: " << dim_media << std::endl;
-                // std::cout << "dim_temp PRIMA: " << dim_temp << std::endl;
-
-                // if(dim_media == dim_temp) {}
-                // else if(dim_media < dim_temp)
-                // {
-                //     cloud_media->points.resize(dim_temp);
-                // }
-                // else
-                // {
-                //     cloud_temp->points.resize(dim_media);
-                // }
-
-                // std::cout << "dim_media DOPO: " << dim_media << std::endl;
-                // std::cout << "dim_temp DOPO: " << dim_temp << std::endl;
-
-                // for(int i = 0; i < cloud_media->points.size(); i++)
-                // {
-                //     cloud_media->points.at(i).x += cloud_temp->points.at(i).x;
-                //     cloud_media->points.at(i).y += cloud_temp->points.at(i).y;
-                //     cloud_media->points.at(i).z += cloud_temp->points.at(i).z;
-                // }
-
-                // count++;
-                // cloud_media->width = cloud_media->points.size();
-                // cloud_media->height = 1;
-                pcl::toROSMsg(*cloud_temp, cloud2);
-                visual_cloud = cloud2;
-                // cloud2.header.frame_id = "base_link";
-                // cloud2.header.stamp = ros::Time::now();
-                // pub_cloud2.publish(cloud2);
-                ros::spinOnce();
-                loop_rate.sleep();
+                ROS_INFO("%s: Preempted", action_name_.c_str());
+                // set the action state to preempted
+                as_.setPreempted();
+                success = false;
             }
+
+            // t = ros::Time::now() - t0;
+
+            // tf2_ros::Buffer tfBuffer;
+            // tf2_ros::TransformListener tfListener(tfBuffer);
+            // geometry_msgs::TransformStamped transform;
+
+            // try {
+            //     transform = tfBuffer.lookupTransform("tool0", "camera_depth_optical_frame", ros::Time(0), ros::Duration(3.0)); 
+            // }
+            // catch (tf2::TransformException &ex) {
+            //     ROS_WARN("%s",ex.what());
+            //     ros::Duration(1.0).sleep();
+            // }
+
+            // std::cout << transform;
+            
+            // try {
+            //     transform = tfBuffer.lookupTransform("base_link", "camera_depth_optical_frame", ros::Time(0), ros::Duration(3.0)); 
+            // }
+            // catch (tf2::TransformException &ex) {
+            //     ROS_WARN("%s",ex.what());
+            //     ros::Duration(1.0).sleep();
+            // }
+
+            //std::cout << transform << std::endl;
+
+            Eigen::Vector3d o_base_cam;
+            Eigen::Vector3d p_cam_cam;
+            Eigen::Vector3d p_base_cam;
+            Eigen::Matrix3d R_base_cam;
+            Eigen::Quaterniond q;
+
+            // o_base_cam.x() = transform.transform.translation.x;
+            // o_base_cam.y() = transform.transform.translation.y;
+            // o_base_cam.z() = transform.transform.translation.z;
+            // q.w() = transform.transform.rotation.w;
+            // q.x() = transform.transform.rotation.x;
+            // q.y() = transform.transform.rotation.y;
+            // q.z() = transform.transform.rotation.z;
+            // q.normalize();
+            // R_base_cam = q.toRotationMatrix();
+            o_base_cam.x() = pose_base_cam.pose.position.x;
+            o_base_cam.y() = pose_base_cam.pose.position.y;
+            o_base_cam.z() = pose_base_cam.pose.position.z;
+            q.w() = pose_base_cam.pose.orientation.w;
+            q.x() = pose_base_cam.pose.orientation.x;
+            q.y() = pose_base_cam.pose.orientation.y;
+            q.z() = pose_base_cam.pose.orientation.z;
+            q.normalize();
+            R_base_cam = q.toRotationMatrix();
+
+            // sensor_msgs::convertPointCloud2ToPointCloud(nuvola, cloud_temp);
+            pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_temp(new pcl::PointCloud<pcl::PointXYZRGB>);
+            sensor_msgs::PointCloud2 cloud2;
+            pcl::fromROSMsg(nuvola, *cloud_temp);
+            for(int i = 0; i < cloud_temp->points.size(); i++) 
+            {
+                p_cam_cam.x() = cloud_temp->points.at(i).x;
+                p_cam_cam.y() = cloud_temp->points.at(i).y;
+                p_cam_cam.z() = cloud_temp->points.at(i).z;
+                p_base_cam = o_base_cam + R_base_cam * p_cam_cam;
+                cloud_temp->points.at(i).x = p_base_cam.x();
+                cloud_temp->points.at(i).y = p_base_cam.y();
+                cloud_temp->points.at(i).z = p_base_cam.z();
+            }
+
+            pcl::io::savePCDFile("/home/workstation2/pcl_catturata.pcd", *cloud_temp);
+
+            // int dim_media = cloud_media->points.size();
+            // int dim_temp = cloud_temp->points.size();
+            // int actual_dim;
+
+            // std::cout << "Iterazione " << count << std::endl;
+
+            // std::cout << "dim_media PRIMA: " << dim_media << std::endl;
+            // std::cout << "dim_temp PRIMA: " << dim_temp << std::endl;
+
+            // if(dim_media == dim_temp) {}
+            // else if(dim_media < dim_temp)
+            // {
+            //     cloud_media->points.resize(dim_temp);
+            // }
+            // else
+            // {
+            //     cloud_temp->points.resize(dim_media);
+            // }
+
+            // std::cout << "dim_media DOPO: " << dim_media << std::endl;
+            // std::cout << "dim_temp DOPO: " << dim_temp << std::endl;
+
+            // for(int i = 0; i < cloud_media->points.size(); i++)
+            // {
+            //     cloud_media->points.at(i).x += cloud_temp->points.at(i).x;
+            //     cloud_media->points.at(i).y += cloud_temp->points.at(i).y;
+            //     cloud_media->points.at(i).z += cloud_temp->points.at(i).z;
+            // }
+
+            // count++;
+            // cloud_media->width = cloud_media->points.size();
+            // cloud_media->height = 1;
+            pcl::toROSMsg(*cloud_temp, cloud2);
+            visual_cloud = cloud2;
+            // cloud2.header.frame_id = "base_link";
+            // cloud2.header.stamp = ros::Time::now();
+            // pub_cloud2.publish(cloud2);
+            ros::spinOnce();
 
             if(success)
             {
@@ -237,7 +236,7 @@ public:
             // cloud2.header.frame_id = "base_link";
             // cloud2.header.stamp = ros::Time::now();
             // pub_cloud2.publish(cloud2);            
-
+            loop_rate.sleep();
         }
         else {}
     }

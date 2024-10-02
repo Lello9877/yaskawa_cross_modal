@@ -85,7 +85,7 @@ int main(int argc, char **argv)
     // Indici Ordinati Cerchio: 13, 14, 15, 18, 17, 16, 12, 11, 10, 8, 6, 4, 2, 1, 0, 3, 5, 7, 9
     // Indici Ordinati Parabola: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 11
 
-    if(pcl::io::loadPCDFile<pcl::PointXYZ>("/home/workstation2/ws_cross_modal/bags/PCL_visuale_retta_proc.pcd", *cloud) != 0) { return -1; }
+    if(pcl::io::loadPCDFile<pcl::PointXYZ>("/home/workstation2/spirale_offset.pcd", *cloud) != 0) { return -1; }
     Eigen::Vector3d new_point, old_point, temp_point, temp_diff;
     // prova->width = 6;
     // prova->height = 1;
@@ -256,7 +256,7 @@ int main(int argc, char **argv)
     sortedCloud->width = cloud->points.size();
     sortedCloud->height = 1;
     spline(sortedCloud, cloudInterpolated, 406);
-    pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_visuale_retta_spline.pcd", *cloudInterpolated);
+    pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/prova_spline.pcd", *cloudInterpolated);
 
     // for(int i = 0; i < cloud->points.size(); i++) {
     //     temp_point.x() = cloud->points.at(i).x;

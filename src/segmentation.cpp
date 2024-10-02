@@ -46,6 +46,7 @@ void segmentazione(std::string path, pcl::PointCloud<pcl::PointXYZRGB>::Ptr clou
     // For every cluster...
 	int currentClusterCavo = 0;
     int count_tavolo = 0;
+    int count = 0;
     std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> cluster_vector;
 	for(std::vector<pcl::PointIndices>::const_iterator i = clusters.begin(); i != clusters.end(); ++i)
 	{
@@ -56,6 +57,9 @@ void segmentazione(std::string path, pcl::PointCloud<pcl::PointXYZRGB>::Ptr clou
 		cluster->width = cluster->points.size();
 		cluster->height = 1;
 		cluster->is_dense = true;
+
+        pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/cerchio_occluso" + boost::to_string(count) + ".pcd", *cluster);
+        count++;
 
         // pcl::PointCloud<pcl::PointXYZRGB>::Ptr colored_cloud = cluster;
         // pcl::visualization::CloudViewer viewer("Cluster viewer");
@@ -100,85 +104,85 @@ void segmentazione(std::string path, pcl::PointCloud<pcl::PointXYZRGB>::Ptr clou
     std::cout << "Dimensione del vettore cluster NON TAVOLO " << cluster_vector.size() << std::endl;
     // indice.resize(cluster_vector.size());
     
-    for(int i = 0; i < cluster_vector.size() - 1; i++)
-    {
-        for(int j = i + 1; j < cluster_vector.size(); j++)
-        {
-            distance = cluster_distance(cluster_vector.at(i), cluster_vector.at(j));
-            if(distance > 0.05)
-            {
-                if(indice.size() == 0)
-                {
-                    indice.push_back(i);
-                    indice.push_back(j);
-                }
-                else
-                {
-                    for(int k = 0; k < indice.size(); k++)
-                    {
-                        if(indice.at(k) == i)
-                        {
-                            indice_presente_1 = true;
-                            break;
-                        }
-                    }
-                    for(int k = 0; k < indice.size(); k++)
-                    {
-                        if(indice.at(k) == j)
-                        {
-                            indice_presente_2 = true;
-                            break;
-                        }
-                    }
+    // for(int i = 0; i < cluster_vector.size() - 1; i++)
+    // {
+    //     for(int j = i + 1; j < cluster_vector.size(); j++)
+    //     {
+    //         distance = cluster_distance(cluster_vector.at(i), cluster_vector.at(j));
+    //         if(distance > 0.05)
+    //         {
+    //             if(indice.size() == 0)
+    //             {
+    //                 indice.push_back(i);
+    //                 indice.push_back(j);
+    //             }
+    //             else
+    //             {
+    //                 for(int k = 0; k < indice.size(); k++)
+    //                 {
+    //                     if(indice.at(k) == i)
+    //                     {
+    //                         indice_presente_1 = true;
+    //                         break;
+    //                     }
+    //                 }
+    //                 for(int k = 0; k < indice.size(); k++)
+    //                 {
+    //                     if(indice.at(k) == j)
+    //                     {
+    //                         indice_presente_2 = true;
+    //                         break;
+    //                     }
+    //                 }
 
-                    if(indice_presente_1 == true && indice_presente_2 == false)
-                        indice.push_back(j);
-                    else if(indice_presente_1 == false && indice_presente_2 == true)
-                        indice.push_back(i);
-                    else if(indice_presente_1 == false && indice_presente_2 == false)
-                    {
-                        indice.push_back(i);
-                        indice.push_back(j);
-                    }
-                    else {}
-                }
-            }
-        }
-    }
+    //                 if(indice_presente_1 == true && indice_presente_2 == false)
+    //                     indice.push_back(j);
+    //                 else if(indice_presente_1 == false && indice_presente_2 == true)
+    //                     indice.push_back(i);
+    //                 else if(indice_presente_1 == false && indice_presente_2 == false)
+    //                 {
+    //                     indice.push_back(i);
+    //                     indice.push_back(j);
+    //                 }
+    //                 else {}
+    //             }
+    //         }
+    //     }
+    // }
 
-    bool presente;
-    std::cout << "Gli indici dei cavi sono " << indice.size() << std::endl;
-    for(int i = 0; i < indice.size(); i++)
-        std::cout << "Valore " << i << ": " << indice.at(i) << std::endl;
-    for(int i = 0; i < cluster_vector.size(); i++)
-    {
-        presente = false;
-        for(int j = 0; j < indice.size(); j++)
-        {
-            if(i == indice.at(j))
-            {
-                presente = true;
-                break;
-            }
-        }
-        if(!presente)
-        {
-            std::cout << "Il cluster di indice " << i << " è un'occlusione" << std::endl;
-            indice_occlusione.push_back(i);
-        }
-    }
+    // bool presente;
+    // std::cout << "Gli indici dei cavi sono " << indice.size() << std::endl;
+    // for(int i = 0; i < indice.size(); i++)
+    //     std::cout << "Valore " << i << ": " << indice.at(i) << std::endl;
+    // for(int i = 0; i < cluster_vector.size(); i++)
+    // {
+    //     presente = false;
+    //     for(int j = 0; j < indice.size(); j++)
+    //     {
+    //         if(i == indice.at(j))
+    //         {
+    //             presente = true;
+    //             break;
+    //         }
+    //     }
+    //     if(!presente)
+    //     {
+    //         std::cout << "Il cluster di indice " << i << " è un'occlusione" << std::endl;
+    //         indice_occlusione.push_back(i);
+    //     }
+    // }
 
-    for(int i = 0; i < indice_occlusione.size(); i++)
-    {
-        std::string path_occlusione = "/home/workstation2/ws_cross_modal/occlusione" + boost::to_string(indice_occlusione.at(i)) + ".pcd";
-        pcl::io::savePCDFile(path_occlusione, *cluster_vector.at(indice_occlusione.at(i)));
-    }
+    // for(int i = 0; i < indice_occlusione.size(); i++)
+    // {
+    //     std::string path_occlusione = "/home/workstation2/ws_cross_modal/occlusione" + boost::to_string(indice_occlusione.at(i)) + ".pcd";
+    //     pcl::io::savePCDFile(path_occlusione, *cluster_vector.at(indice_occlusione.at(i)));
+    // }
 
-    for(int i = 0; i < indice.size(); i++)
-    {
-        std::string path_cavo = "/home/workstation2/ws_cross_modal/cavo" + boost::to_string(indice.at(i)) + ".pcd";
-        pcl::io::savePCDFile(path_cavo, *cluster_vector.at(indice.at(i)));
-    }
+    // for(int i = 0; i < indice.size(); i++)
+    // {
+    //     std::string path_cavo = "/home/workstation2/ws_cross_modal/cavo" + boost::to_string(indice.at(i)) + ".pcd";
+    //     pcl::io::savePCDFile(path_cavo, *cluster_vector.at(indice.at(i)));
+    // }
 
     // pcl::PointCloud<pcl::PointXYZRGB>::Ptr colored_cloud = clustering.getColoredCloud ();
     // pcl::visualization::CloudViewer viewer ("Cluster viewer");
@@ -202,7 +206,7 @@ int main(int argc, char** argv)
     // }
 
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
-    std::string path = "/home/workstation2/ws_cross_modal/pcl_occlusa_pre2.pcd";
+    std::string path = "/home/workstation2/ws_cross_modal/cerchio_occluso_pre.pcd";
     if(pcl::io::loadPCDFile<pcl::PointXYZRGB>(path, *cloud) != 0) { return -1; }
     segmentazione(path, cloud);
 

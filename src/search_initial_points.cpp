@@ -35,6 +35,9 @@ void spline(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::Poin
         row_index++;
     }
 
+    // std::cout << points << std::endl;
+    points.conservativeResize(3, 4);
+    points.col(3) << 0.002, -0.4, 0.25;
     Spline3d spline = Eigen::SplineFitting<Spline3d>::Interpolate(points, 3);
     float time_ = 0;
     *cloudInterpolated = *cloud;
@@ -178,9 +181,10 @@ int main(int argc, char **argv)
     pcl::PointCloud<pcl::PointXYZ>::Ptr tempInterpolatedCloud(new pcl::PointCloud<pcl::PointXYZ>());
     int indice_old, indice_new;
     Eigen::Vector3d differenza;
-    std::string path_visuale = "/home/workstation2/ws_cross_modal/bags/PCL_visuale_parabola2_proc.pcd";
-    std::string path_tattile = "/home/workstation2/ws_cross_modal/bags/PCL_centr2_spirale2_proc.pcd";
-    if(pcl::io::loadPCDFile<pcl::PointXYZ>(path_tattile, *cloud) != 0) { return -1; }
+    // std::string path_visuale = "/home/workstation2/ws_cross_modal/bags/PCL_visuale_parabola2_proc.pcd";
+    // std::string path_tattile = "/home/workstation2/ws_cross_modal/bags/PCL_centr2_spirale2_proc.pcd";
+    std::string path = "/home/workstation2/spirale_offset.pcd";
+    if(pcl::io::loadPCDFile<pcl::PointXYZ>(path, *cloud) != 0) { return -1; }
 
     // Porzione di codice per la scelta di una direzione
     int indice_iniziale = 0;
@@ -205,7 +209,6 @@ int main(int argc, char **argv)
                 indice_vicino.push_back(i);
                 // std::cout << "Ho trovato un vicino con indice: " << i << std::endl;
             }
-
         }
 
         for(int i = 0; i < indice_vicino.size(); i++)
@@ -249,35 +252,44 @@ int main(int argc, char **argv)
     }
 
     std::cout << "Old: " << indice_old << std::endl << "New: " << indice_new << std::endl;
-    sort_points(path_tattile, indice_old, indice_new, tempCloud);
-    spline(tempCloud, tempInterpolatedCloud, 400);
-    pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_centr2_spirale2_esp.pcd", *tempInterpolatedCloud);
-    // pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_visuale_parabola2_esp.pcd", *tempInterpolatedCloud);
+    sort_points(path, indice_old, indice_new, tempCloud);
 
-    Eigen::Vector3d point_old, point_new, point_temp;
-    point_old.x() = tempCloud->points.at(tempCloud->points.size()-1).x;
-    point_old.y() = tempCloud->points.at(tempCloud->points.size()-1).y;
-    point_old.z() = tempCloud->points.at(tempCloud->points.size()-1).z;
-    point_new.x() = tempCloud->points.at(tempCloud->points.size()-2).x;
-    point_new.y() = tempCloud->points.at(tempCloud->points.size()-2).y;
-    point_new.z() = tempCloud->points.at(tempCloud->points.size()-2).z;
-
-    for(int i = 0; i < cloud->points.size(); i++)
-    {   
-        point_temp.x() = cloud->points.at(i).x;
-        point_temp.y() = cloud->points.at(i).y;
-        point_temp.z() = cloud->points.at(i).z;
-        if(point_old == point_temp) { indice_old = i; }
-        if(point_new == point_temp) { indice_new = i; }
+    if(tempCloud->points.size() <= 3 || (cloud->points.size() - tempCloud->points.size()) >= 3)
+    {
+        std::cout << "Altolà, questa è un'occlusione!!!" << std::endl;
     }
-    std::cout << "Old: " << indice_old << std::endl << "New: " << indice_new << std::endl;
+    else
+    {
+        spline(tempCloud, tempInterpolatedCloud, 400);
+        pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/occlusione_esp.pcd", *tempInterpolatedCloud);
+        // pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_visuale_parabola2_esp.pcd", *tempInterpolatedCloud);
 
 
-    // indice_old = 26; indice_new = 27;
-    sort_points(path_tattile, indice_old, indice_new, sortedCloud);
-    spline(sortedCloud, interpolatedCloud, 400);
-    // pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_visuale_parabola2_spline.pcd", *interpolatedCloud);
-    pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_centr2_spirale2_spline.pcd", *interpolatedCloud);
+        Eigen::Vector3d point_old, point_new, point_temp;
+        point_old.x() = tempCloud->points.at(tempCloud->points.size()-1).x;
+        point_old.y() = tempCloud->points.at(tempCloud->points.size()-1).y;
+        point_old.z() = tempCloud->points.at(tempCloud->points.size()-1).z;
+        point_new.x() = tempCloud->points.at(tempCloud->points.size()-2).x;
+        point_new.y() = tempCloud->points.at(tempCloud->points.size()-2).y;
+        point_new.z() = tempCloud->points.at(tempCloud->points.size()-2).z;
+
+        for(int i = 0; i < cloud->points.size(); i++)
+        {   
+            point_temp.x() = cloud->points.at(i).x;
+            point_temp.y() = cloud->points.at(i).y;
+            point_temp.z() = cloud->points.at(i).z;
+            if(point_old == point_temp) { indice_old = i; }
+            if(point_new == point_temp) { indice_new = i; }
+        }
+        std::cout << "Old: " << indice_old << std::endl << "New: " << indice_new << std::endl;
+
+        // indice_old = 26; indice_new = 27;
+        sort_points(path, indice_old, indice_new, sortedCloud);
+        pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/occlusione_sorted.pcd", *sortedCloud);
+        spline(sortedCloud, interpolatedCloud, 400);
+        // pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_visuale_parabola2_spline.pcd", *interpolatedCloud);
+        pcl::io::savePCDFile("/home/workstation2/spirale_interpolata.pcd", *interpolatedCloud);
+    }
 
     return 0;
 }

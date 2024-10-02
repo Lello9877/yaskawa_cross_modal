@@ -89,7 +89,7 @@ int main(int argc, char** argv)
     std::string path_cerchio_visuale = "/home/workstation2/ws_cross_modal/bags/PCL_visuale_cerchio_filtered.pcd";
     std::string path_parabola_visuale = "/home/workstation2/ws_cross_modal/bags/PCL_visuale_parabola_filtered.pcd";
     std::string path_retta_visuale = "/home/workstation2/ws_cross_modal/bags/PCL_visuale_retta_filtered.pcd";
-    std::string path = "/home/workstation2/ws_cross_modal/bags/PCL_centr2_spirale2.pcd";
+    std::string path = "/home/workstation2/ws_cross_modal/cerchio_occluso3.pcd";
     std::string path_visuale = "/home/workstation2/ws_cross_modal/bags/PCL_visuale_spirale2.pcd";
 
     if(pcl::io::loadPCDFile<pcl::PointXYZ>(path, *cloud) != 0) { return -1; }
@@ -175,7 +175,7 @@ int main(int argc, char** argv)
     cloud_voxel->width = cloud_voxel->points.size();
     cloud_voxel->height = 1;
 
-    pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_centr2_spirale2_grid.pcd", *cloud_voxel);
+    pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/cerchio_occluso3_down.pcd", *cloud_voxel);
     // pcl::io::savePCDFile("/home/workstation2/ws_cross_modal/bags/PCL_visuale_spirale2_grid.pcd", *cloud_voxel);
 
     return 0;

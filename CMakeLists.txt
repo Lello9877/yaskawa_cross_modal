@@ -244,17 +244,11 @@ target_link_libraries(interpolation ${catkin_LIBRARIES})
 target_link_libraries(interpolation ${rosbag_LIBRARIES})
 target_link_libraries(interpolation ${PCL_LIBRARIES})
 
-# add_executable(post_processing src/post_processing.cpp)
-# add_dependencies(post_processing ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-# target_link_libraries(post_processing ${catkin_LIBRARIES})
-# target_link_libraries(post_processing ${rosbag_LIBRARIES})
-# target_link_libraries(post_processing ${PCL_LIBRARIES})
-
-# add_executable(pre_processing src/pre_processing.cpp)
-# add_dependencies(pre_processing ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-# target_link_libraries(pre_processing ${catkin_LIBRARIES})
-# target_link_libraries(pre_processing ${rosbag_LIBRARIES})
-# target_link_libraries(pre_processing ${PCL_LIBRARIES})
+add_executable(post_process src/post_process.cpp)
+add_dependencies(post_process ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(post_process ${catkin_LIBRARIES})
+target_link_libraries(post_process ${rosbag_LIBRARIES})
+target_link_libraries(post_process ${PCL_LIBRARIES})
 
 add_executable(esf src/esf.cpp)
 add_dependencies(esf ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
@@ -356,6 +350,12 @@ target_link_libraries(pre_process ${catkin_LIBRARIES})
 target_link_libraries(pre_process ${rosbag_LIBRARIES})
 target_link_libraries(pre_process ${PCL_LIBRARIES})
 
+add_executable(script src/script.cpp)
+add_dependencies(script ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(script ${catkin_LIBRARIES})
+target_link_libraries(script ${rosbag_LIBRARIES})
+target_link_libraries(script ${PCL_LIBRARIES})
+
 add_executable(segmentator src/ros_network/segmentator.cpp)
 add_dependencies(segmentator ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(segmentator ${catkin_LIBRARIES})
@@ -380,7 +380,36 @@ target_link_libraries(interpolator ${catkin_LIBRARIES})
 target_link_libraries(interpolator ${rosbag_LIBRARIES})
 target_link_libraries(interpolator ${PCL_LIBRARIES})
 
- 
+add_executable(cross_exploration src/ros_network/cross_exploration.cpp)
+add_dependencies(cross_exploration ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(cross_exploration ${catkin_LIBRARIES})
+target_link_libraries(cross_exploration ${rosbag_LIBRARIES})
+target_link_libraries(cross_exploration ${PCL_LIBRARIES})
+
+add_executable(reconstruct src/ros_network/reconstruct.cpp)
+add_dependencies(reconstruct ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(reconstruct ${catkin_LIBRARIES})
+target_link_libraries(reconstruct ${rosbag_LIBRARIES})
+target_link_libraries(reconstruct ${PCL_LIBRARIES})
+
+add_executable(division src/division.cpp)
+add_dependencies(division ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(division ${catkin_LIBRARIES})
+target_link_libraries(division ${rosbag_LIBRARIES})
+target_link_libraries(division ${PCL_LIBRARIES})
+
+add_executable(euclidean_segmentation src/ros_network/euclidean_segmentation.cpp)
+add_dependencies(euclidean_segmentation ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(euclidean_segmentation ${catkin_LIBRARIES})
+target_link_libraries(euclidean_segmentation ${rosbag_LIBRARIES})
+target_link_libraries(euclidean_segmentation ${PCL_LIBRARIES})
+
+add_executable(check_occlusion src/ros_network/check_occlusion.cpp)
+add_dependencies(check_occlusion ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(check_occlusion ${catkin_LIBRARIES})
+target_link_libraries(check_occlusion ${rosbag_LIBRARIES})
+target_link_libraries(check_occlusion ${PCL_LIBRARIES})
+
 #############
 ## Install ##
 #############

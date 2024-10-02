@@ -1,0 +1,29 @@
+<launch>
+    <node name="tactile_exploration" pkg="yaskawa_cross_modal" type="tactile_exploration" output="screen"/>
+    <node name="visual_exploration" pkg="yaskawa_cross_modal" type="visual_exploration" output="screen"/>
+    <node name="pre_processing" pkg="yaskawa_cross_modal" type="pre_processing" output="screen"/>
+    <node name="segmentator" pkg="yaskawa_cross_modal" type="segmentator" output="screen"/>
+    <node name="downsample" pkg="yaskawa_cross_modal" type="downsample" output="screen"/>
+    <node name="post_processing" pkg="yaskawa_cross_modal" type="post_processing" output="screen"/>
+    <node name="euclidean_segmentation" pkg="yaskawa_cross_modal" type="euclidean_segmentation" output="screen"/>
+    <node name="cross_exploration" pkg="yaskawa_cross_modal" type="cross_exploration" output="screen"/>
+    <node name="check_occlusion" pkg="yaskawa_cross_modal" type="check_occlusion" output="screen"/>
+    <node name="reconstruct" pkg="yaskawa_cross_modal" type="reconstruct" output="screen"/>
+    <node name="interpolator" pkg="yaskawa_cross_modal" type="interpolator" output="screen"/>
+    <node name="task" pkg="yaskawa_cross_modal" type="task" output="screen"/>
+</launch>
+
+<!-- <launch>
+    <node name="tactile_exploration" pkg="yaskawa_cross_modal" type="tactile_exploration"/>
+    <node name="visual_exploration" pkg="yaskawa_cross_modal" type="visual_exploration" output="screen"/>
+    <node name="pre_processing" pkg="yaskawa_cross_modal" type="pre_processing"/>
+    <node name="segmentator" pkg="yaskawa_cross_modal" type="segmentator" output="screen"/>
+    <node name="downsample" pkg="yaskawa_cross_modal" type="downsample" output="screen"/>
+    <node name="post_processing" pkg="yaskawa_cross_modal" type="post_processing" />
+    <node name="euclidean_segmentation" pkg="yaskawa_cross_modal" type="euclidean_segmentation" />
+    <node name="cross_exploration" pkg="yaskawa_cross_modal" type="cross_exploration" />
+    <node name="check_occlusion" pkg="yaskawa_cross_modal" type="check_occlusion" />
+    <node name="reconstruct" pkg="yaskawa_cross_modal" type="reconstruct" />
+    <node name="interpolator" pkg="yaskawa_cross_modal" type="interpolator" />
+    <node name="task" pkg="yaskawa_cross_modal" type="task" />
+</launch> -->

@@ -12,7 +12,7 @@ int main(int argc, char **argv)
     std::string path = "/home/workstation2/ws_cross_modal/bags/";
 
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
-    std::string source_path = "/home/workstation2/ws_cross_modal/pcl_occlusa2.pcd";
+    std::string source_path = "/home/workstation2/ws_cross_modal/cerchio_occluso.pcd";
     if(pcl::io::loadPCDFile<pcl::PointXYZRGB>(source_path, *cloud) != 0) { return -1; }
     std::vector<int> indice;
     float x_min = -0.25, x_max = 0.15;
@@ -39,7 +39,7 @@ int main(int argc, char **argv)
         cloud->points.erase(cloud->points.begin() + indice.at(i)-i);
 
     cloud->width = cloud->points.size();
-    destination_path = "/home/workstation2/ws_cross_modal/pcl_occlusa_pre2.pcd";
+    destination_path = "/home/workstation2/ws_cross_modal/cerchio_occluso_pre.pcd";
     pcl::io::savePCDFile<pcl::PointXYZRGB>(destination_path, *cloud);
 
 

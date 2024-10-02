@@ -9,33 +9,61 @@
 #include <sensor_msgs/point_cloud_conversion.h>
 #include "yaskawa_cross_modal/utility.h"
 
-pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
-
-void merge_cable_cb(const sensor_msgs::PointCloud2Ptr &msg)
-{
-    sensor_msgs::PointCloud2 nuvola = *msg;
-    pcl::fromROSMsg(nuvola, *cloud);
-}
-
 int main(int argc, char** argv)
 {
-    ros::init(argc, argv, "interpolator");
+    ros::init(argc, argv, "script");
     ros::NodeHandle nh;
 
-    ros::Rate loop_rate(30);
-    ros::Subscriber sub_interpolated = nh.subscribe("/pcl_merge", 10, merge_cable_cb);
-    int count = 0;
+    // ros::Rate loop_rate(30);
 
+    // std::string path = "/home/workstation2/tactspir";
+    // pcl::PointCloud<pcl::PointXYZRGB>::Ptr visual(new pcl::PointCloud<pcl::PointXYZRGB>);
+    // pcl::io::loadPCDFile("/home/workstation2/retta_visuale.pcd", *visual);
+    // Eigen::Vector3f temp;
+    // // for(int i = 1; i < 3; i++)
+    // // {
+    //     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+    //     pcl::io::loadPCDFile("/home/workstation2/retta_tactile.pcd", *cloud);
+    //     for(int j = 0; j < cloud->points.size(); j++)
+    //     {
+    //         // std::cout << "Valori: " << cloud->points.at(j).x << cloud->points.at(j).y << cloud->points.at(j).z << std::endl;
+    //         temp.x() = cloud->points.at(j).x;
+    //         temp.y() = cloud->points.at(j).y;
+    //         temp.z() = cloud->points.at(j).z;
+    //         // temp.x() += 0.020; // 0.010
+    //         // temp.y() -= 0.020; // 0.005
+    //         temp.z() -= 0.010;
+    //         cloud->points.at(j).x = temp.x();
+    //         cloud->points.at(j).y = temp.y();
+    //         cloud->points.at(j).z = temp.z();
+    //     }
+    //     cloud->width = cloud->points.size();
+    //     cloud->height = 1;
+    //     pcl::io::savePCDFile("/home/workstation2/retta_tactile_off.pcd", *cloud);
 
-    while(ros::ok())
-    {
-        ros::spinOnce();
-        if(cloud->size() != 0)
-        {
+    //     *visual += *cloud;
+    //     // cloud->points.clear(); 
+    //     // cloud->points.resize(0);
+    // // // }
+    // pcl::io::savePCDFile("/home/workstation2/retta_offset.pcd", *visual);
+
+    // // // pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud1(new pcl::PointCloud<pcl::PointXYZRGB>);
+    // // // pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud2(new pcl::PointCloud<pcl::PointXYZRGB>);
+    // // // pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud3(new pcl::PointCloud<pcl::PointXYZRGB>);
+
+    // // // pcl::io::loadPCDFile("/home/workstation2/tactspir_off1.pcd", *cloud1);
+    // // // pcl::io::loadPCDFile("/home/workstation2/tactspir_off2.pcd", *cloud2);
+    // // // *cloud3 = *cloud1 + *cloud2;
+    // // // pcl::io::savePCDFile("/home/workstation2/tactspir_merge.pcd", *cloud3);
+    
+
+    // pcl::io::savePCDFile("/home/workstation2/retta_offset.pcd", *visual);
+
             std::cout << std::endl << "INTERPOLATOR" << std::endl;
             pcl::PointCloud<pcl::PointXYZRGB>::Ptr sortedCloud(new pcl::PointCloud<pcl::PointXYZRGB>());
             pcl::PointCloud<pcl::PointXYZRGB>::Ptr interpolatedCloud(new pcl::PointCloud<pcl::PointXYZRGB>());
             pcl::PointCloud<pcl::PointXYZRGB>::Ptr tempCloud(new pcl::PointCloud<pcl::PointXYZRGB>());
+            pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>());
             int indice_old, indice_new;
             Eigen::Vector3d differenza;
             int indice_iniziale = 0;
@@ -47,7 +75,9 @@ int main(int argc, char** argv)
             std::vector<double> distanza_vicino;
             std::vector<Eigen::Vector3d> direzione;
             soglia = 0.03;
+            int count = 0;
 
+            pcl::io::loadPCDFile("/home/workstation2/retta_offset.pcd", *cloud);
             while(true && count < 10) // contatore di sicurezza per uscire dal ciclo 
             {
                 for(int i = 1; i < cloud->points.size(); i++)
@@ -123,14 +153,11 @@ int main(int argc, char** argv)
 
             std::cout << "Old: " << indice_old << std::endl << "New: " << indice_new << std::endl;
             sort_points(cloud, indice_old, indice_new, sortedCloud);
-            spline(sortedCloud, interpolatedCloud, 150);
-            pcl::io::savePCDFile("/home/workstation2/interpolato" + boost::to_string(count) + ".pcd", *interpolatedCloud);
+            spline(sortedCloud, interpolatedCloud, 800);
+            pcl::io::savePCDFile("/home/workstation2/retta_interpolata" + boost::to_string(count) + ".pcd", *interpolatedCloud);
             cloud->points.clear();
             cloud->points.resize(0);
             count++;
-        }
-        loop_rate.sleep();
-    }
 
     return 0;
 }
