@@ -123,7 +123,7 @@ int main(int argc, char** argv)
 
             std::cout << "Old: " << indice_old << std::endl << "New: " << indice_new << std::endl;
             sort_points(cloud, indice_old, indice_new, sortedCloud);
-            spline(sortedCloud, interpolatedCloud, 150);
+            spline(sortedCloud, interpolatedCloud, 400);
             pcl::io::savePCDFile("/home/workstation2/interpolato" + boost::to_string(count) + ".pcd", *interpolatedCloud);
             cloud->points.clear();
             cloud->points.resize(0);

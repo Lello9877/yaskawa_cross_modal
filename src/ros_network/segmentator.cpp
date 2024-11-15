@@ -40,7 +40,7 @@ int main(int argc, char** argv)
             pcl::RegionGrowingRGB<pcl::PointXYZRGB> clustering;
             clustering.setInputCloud(visual_cloud);
             clustering.setSearchMethod(kdtree);
-            clustering.setMinClusterSize(600);
+            clustering.setMinClusterSize(400);
             clustering.setDistanceThreshold(10);
             clustering.setPointColorThreshold(6);
             clustering.setRegionColorThreshold(5);
@@ -118,10 +118,8 @@ int main(int argc, char** argv)
             visual_cloud->points.resize(0);
             cluster_vector.clear();
             cluster_vector.resize(0);
-
         }
         loop_rate.sleep();
     }
-
     return 0;
 }
