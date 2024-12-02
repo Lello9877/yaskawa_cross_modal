@@ -43,6 +43,10 @@ repositories:
     type: git
     url: https://github.com/marcocostanzo/sun_learning_lib.git
     version: master
+  sun_systems_lib:
+    type: git
+    url: https://github.com/marcocostanzo/sun_systems_lib
+    version: master
   sun_tactile_sensor:
     type: git
     url: https://github.com/marcocostanzo/tactile_sensor_ros.git
