@@ -1,6 +1,6 @@
 # yaskawa_cross_modal
 
-ROS 1 package used for a cross-modal learning approach to shape reconstruction of the cables explotiting different perception modalities on board the Yaskawa Motoman SIA5F. The approach is based on a visuo-tactile method by using an Intel RealSense D435i and a SUNTouch tactile sensor.
+ROS 1 package used for a cross-modal learning approach to shape reconstruction of the cables exploiting different perception modalities on board the Yaskawa Motoman SIA5F. The approach is based on a visuo-tactile method by using an Intel RealSense D435i and a SUNTouch tactile sensor.
 
 ## Installation
 
